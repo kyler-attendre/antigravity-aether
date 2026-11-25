@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows-helper:
+    name: Build Windows CLI Window Helper from Source
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Compile and verify the Windows helper
+        shell: pwsh
+        run: |
+          node -e 'const fs = require("fs"); const { ensureWindowsHelper } = require("./scripts/package-release.js"); const built = ensureWindowsHelper(); try { fs.copyFileSync(built.helperPath, "scripts/cli-window-helper.exe"); fs.writeFileSync("scripts/cli-window-helper.exe.sha256", built.helperSha256 + "  scripts/cli-window-helper.exe\n"); } finally { fs.rmSync(built.tempDir, { recursive: true, force: true }); }'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload Compiled Helper Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cli-window-helper-win
+          path: |
+            scripts/cli-window-helper.exe
+            scripts/cli-window-helper.exe.sha256
+
+  build-and-release:
+    name: Build & Publish Release Assets
+    needs: build-windows-helper
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download CI-Built Windows Helper
+        uses: actions/download-artifact@v4
+        with:
+          name: cli-window-helper-win
+          path: scripts
+
+      - name: Verify Helper Provenance
+        run: |
+          sha256sum -c scripts/cli-window-helper.exe.sha256
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build Cross-Platform Release Packages
+        run: |
+          node scripts/package-release.js
+          rm -f scripts/cli-window-helper.exe.sha256
+
+      - name: Resolve Release Metadata
+        id: meta
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          TITLE=$(node -e "const p=require('./package.json'); const tag=process.env.REF_NAME||''; const dv=(p.displayVersion||'').trim(); console.log((dv && tag==='v'+p.version) ? 'v'+dv : (tag || 'v'+p.version));")
+          IS_PRE=$(node -e "const tag=process.env.REF_NAME||''; console.log(/-beta/i.test(tag) ? 'true' : 'false');")
+          echo "release_title=$TITLE" >> "$GITHUB_OUTPUT"
+          echo "is_prerelease=$IS_PRE" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.meta.outputs.release_title }}
+          body_path: RELEASE_NOTES.md
+          files: |
+            dist/release/*.zip
+            dist/release/checksums.txt
+          draft: false
+          prerelease: ${{ steps.meta.outputs.is_prerelease }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Force Update Release Notes Body
+        run: |
+          gh release edit "${{ github.ref_name }}" --title "${{ steps.meta.outputs.release_title }}" --notes-file RELEASE_NOTES.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

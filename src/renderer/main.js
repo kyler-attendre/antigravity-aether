@@ -30167,9 +30167,18 @@ speedPkSelection = speedPkSelection.filter(v => v !== id);
             const swBtn = document.createElement('button');
             swBtn.className = 'switch-pill-btn';
             swBtn.type = 'button';
-            swBtn.disabled = accountsUiState.busy || Boolean(accountsUiState.removeModal?.busy) || !acc.hasRefreshToken || Boolean(acc.authInvalid);
-            swBtn.textContent = t('accounts.switchBtn');
-            swBtn.addEventListener('click', () => void performAccountAction('switch', { email: acc.email }));
+            const needsReauth = !acc.hasRefreshToken || Boolean(acc.authInvalid);
+            swBtn.disabled = accountsUiState.busy || Boolean(accountsUiState.removeModal?.busy);
+            if (needsReauth) {
+              swBtn.textContent = currentPanelLanguage === 'en' ? 'Auth & Switch' : '授权切号';
+              swBtn.title = currentPanelLanguage === 'en'
+                ? 'This account lacks a saved OAuth refresh token. Click to authorize it via Google OAuth.'
+                : '该账号尚未保存可切换的 OAuth 凭据（如自动识别账号），点击立即前往 Google 授权补全后即可切号';
+              swBtn.addEventListener('click', () => void performAccountAction('oauth_login', { loginHint: acc.email }));
+            } else {
+              swBtn.textContent = t('accounts.switchBtn');
+              swBtn.addEventListener('click', () => void performAccountAction('switch', { email: acc.email }));
+            }
             right.appendChild(swBtn);
           }
           const rmBtn = document.createElement('button');

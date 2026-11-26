@@ -2222,7 +2222,7 @@ function createAccountsManager(options = {}) {
     /**
      * 启动 OAuth2 本地回环授权流程并添加账号（分阶段报错与脱敏记录；凭据持久化成功后不随初始配额失败回滚）
      */
-    async function startOAuthLogin({ openExternal = options.openExternal || null, timeoutMs = 120000 } = {}) {
+    async function startOAuthLogin({ openExternal = options.openExternal || null, timeoutMs = 120000, loginHint = '' } = {}) {
       const stateStr = crypto.randomBytes(16).toString('hex');
       let server = null;
       let boundPort = 0;
@@ -2362,7 +2362,8 @@ function createAccountsManager(options = {}) {
                 scope: ANTIGRAVITY_OAUTH_SCOPES.join(' '),
                 access_type: 'offline',
                 prompt: 'select_account consent',
-                state: stateStr
+                state: stateStr,
+                ...(loginHint ? { login_hint: String(loginHint).trim() } : {})
               });
               const authUrl = `${OAUTH_AUTH_URL}?${params.toString()}`;
               if (typeof openExternal === 'function') {
@@ -4283,7 +4284,7 @@ async function dispatchAccountsAction(mgr, payload = {}, options = {}) {
     case 'import_tools':
       return { ...mgr.importFromAntigravityTools(payload.emails || null), overview: mgr.getOverviewState() };
     case 'oauth_login':
-      return { ...(await mgr.startOAuthLogin()), overview: mgr.getOverviewState() };
+      return { ...(await mgr.startOAuthLogin({ loginHint: payload.loginHint || '' })), overview: mgr.getOverviewState() };
     case 'remove':
       return { ...mgr.removeAccount(payload.email), overview: mgr.getOverviewState() };
     case 'refresh_quota': {
@@ -4331,7 +4332,15 @@ async function dispatchAccountsAction(mgr, payload = {}, options = {}) {
         overview: mgr.getOverviewState()
       };
     }
-    case 'switch':
+    case 'switch': {
+      // 切走前若当前活跃账号尚未保存 refreshToken（例如 client_auto_detected），先自动从本机凭据库抢救导入，避免切走后无法切回
+      try {
+        const curOv = mgr.getOverviewState();
+        const curActive = (curOv.accounts || []).find((a) => a && a.isActive);
+        if (curActive && !curActive.hasRefreshToken && typeof mgr.importFromCurrentClient === 'function') {
+          await mgr.importFromCurrentClient();
+        }
+      } catch { }
       return {
         ...(await mgr.switchActiveAccount(payload.email, {
           restartClient: options.restartClient,
@@ -4342,6 +4351,7 @@ async function dispatchAccountsAction(mgr, payload = {}, options = {}) {
         })),
         overview: mgr.getOverviewState()
       };
+    }
     case 'update_auto_switch':
       return { ...mgr.updateAutoSwitchConfig(payload.config || {}), overview: mgr.getOverviewState() };
     case 'evaluate_auto_switch':

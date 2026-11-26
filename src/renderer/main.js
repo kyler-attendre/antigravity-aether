@@ -4117,16 +4117,49 @@
     return !el('panel').hidden || !el('panel-tokens').hidden || Boolean(el('panel-quota') && !el('panel-quota').hidden);
   }
 
-  function closeHostSettingsModalIfOpen() {
-    if (typeof document?.querySelector !== 'function') return false;
+  function findVisibleHostSettingsDialog() {
+    if (typeof document?.querySelectorAll !== 'function') return null;
     try {
-      const dlg = document.querySelector('.settings-modal-container, [role="dialog"]');
-      if (!dlg || dlg.closest?.('#ag-context-meter, #ag-context-meter-radial-host')) return false;
-      const closeBtn = dlg.querySelector?.('button[aria-label*="close" i], button[aria-label*="关闭" i], button[aria-label*="關閉" i], button[data-testid*="close" i], button:has(svg.lucide-x)');
+      const candidates = document.querySelectorAll('.settings-modal-container, [role="dialog"]');
+      for (const dlg of candidates) {
+        if (!dlg || dlg.closest?.('#ag-context-meter, #ag-context-meter-radial-host, #ag-context-meter-modal-host')) continue;
+        if (dlg.hidden || dlg.getAttribute?.('aria-hidden') === 'true' || dlg.getAttribute?.('data-state') === 'closed') continue;
+        const style = typeof getComputedStyle === 'function' ? getComputedStyle(dlg) : null;
+        if (style && (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0')) continue;
+        if (typeof dlg.getBoundingClientRect === 'function') {
+          const rect = dlg.getBoundingClientRect();
+          if (rect && rect.width === 0 && rect.height === 0) continue;
+        }
+        return dlg;
+      }
+    } catch { }
+    return null;
+  }
+
+  function closeHostSettingsModalIfOpen() {
+    const dlg = findVisibleHostSettingsDialog();
+    if (!dlg) return false;
+    try {
+      // 1. 优先匹配明确的关闭按钮
+      let closeBtn = dlg.querySelector?.(
+        'button[aria-label*="close" i], button[aria-label*="关闭" i], button[aria-label*="關閉" i], button[data-testid*="close" i], button:has(svg.lucide-x)'
+      );
+      // 2. 回退匹配 Antigravity 设置右侧面板顶部的纯图标关闭按钮（无文字、仅含 SVG）
+      if (!closeBtn) {
+        const rightPane = dlg.querySelector?.('[data-ag-cm-right-pane="true"]') || dlg;
+        const directBtns = Array.from(rightPane.querySelectorAll?.(':scope > button, header button, [class*="absolute"] button') || []);
+        closeBtn = directBtns.find((b) => {
+          if (!b || b.closest?.('#ag-context-meter, #ag-cm-host-settings-page')) return false;
+          const txt = String(b.textContent || '').trim();
+          return !txt && Boolean(b.querySelector?.('svg'));
+        }) || null;
+      }
       if (closeBtn && typeof closeBtn.click === 'function') {
         closeBtn.click();
       } else {
+        // 3. 回退触发 Escape 键及遮罩点击
         const esc = new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true, cancelable: true });
+        (document.activeElement || dlg).dispatchEvent?.(esc);
         dlg.dispatchEvent?.(esc);
         document.dispatchEvent?.(esc);
         window.dispatchEvent?.(esc);
@@ -4139,24 +4172,33 @@
 
   function runAfterClosingHostSettings(fn) {
     const hadModal = closeHostSettingsModalIfOpen();
-    if (hadModal) {
-      setTimeout(() => {
-        if (!state.disposed) fn();
-      }, 80);
-    } else {
+    if (!hadModal) {
       fn();
+      return;
     }
+    const deadline = Date.now() + 260;
+    const waitClose = () => {
+      if (state.disposed) return;
+      const stillOpen = Boolean(findVisibleHostSettingsDialog());
+      const bodyLocked = typeof document?.body?.style?.pointerEvents === 'string' && document.body.style.pointerEvents === 'none';
+      if ((!stillOpen && !bodyLocked) || Date.now() >= deadline) {
+        fn();
+        return;
+      }
+      setTimeout(waitClose, 30);
+    };
+    setTimeout(waitClose, 30);
   }
 
   function showPanel(target, showOpts = {}) {
     if (target !== 'none' && enforceMarketplaceAvoidance()) {
       target = 'none';
     }
-    // 打开顶栏浮层时，若宿主设置弹窗正处于打开状态则先关闭并延迟打开，避免 Radix pointer-events 拦截与层级重叠（最多延迟一次，防止死循环）
-    if (target !== 'none' && !showOpts._afterModalClose && closeHostSettingsModalIfOpen()) {
-      setTimeout(() => {
-        if (!state.disposed) showPanel(target, { ...showOpts, _afterModalClose: true });
-      }, 80);
+    // 打开顶栏浮层时，若宿主设置弹窗正处于打开状态则先关闭并等待卸载后再打开，避免 Radix pointer-events 拦截与层级重叠
+    if (target !== 'none' && !showOpts._afterModalClose && findVisibleHostSettingsDialog()) {
+      runAfterClosingHostSettings(() => {
+        showPanel(target, { ...showOpts, _afterModalClose: true });
+      });
       return;
     }
     // PR #83：切页或收起额度看板时立即取消待恢复任务，与 #81 切页滚动记忆互不干扰
@@ -11607,8 +11649,8 @@
     updatedAtMs: 0
   };
 
-  function openPluginAccountsTab() {
-    showPanel('context');
+  function openPluginAccountsTab(showOpts = {}) {
+    showPanel('context', showOpts);
     switchContextTab('accounts');
     if (typeof refreshAccountsOverview === 'function') void refreshAccountsOverview({ silent: true });
     if (typeof renderQuotaBoard === 'function') renderQuotaBoard(Date.now(), { animate: false });
@@ -21130,9 +21172,9 @@ speedPkSelection = speedPkSelection.filter(v => v !== id);
         else if (actionName === 'restartHost') openClientRestartConfirmFlow();
         else if (actionName === 'verifyRuntime') void verifyHotReloadAndRefreshQuota();
         else if (actionName === 'openReleasePage') openGithubRepo(cachedLatestRelease?.tagName ? `/releases/tag/${cachedLatestRelease.tagName}` : '/releases');
-        else if (actionName === 'openAccountsTab') runAfterClosingHostSettings(() => openPluginAccountsTab());
-        else if (actionName === 'openQuotaBoard') runAfterClosingHostSettings(() => showPanel('quota'));
-        else if (actionName === 'openTokensBoard') runAfterClosingHostSettings(() => showPanel('tokens'));
+        else if (actionName === 'openAccountsTab') runAfterClosingHostSettings(() => openPluginAccountsTab({ _afterModalClose: true }));
+        else if (actionName === 'openQuotaBoard') runAfterClosingHostSettings(() => showPanel('quota', { _afterModalClose: true }));
+        else if (actionName === 'openTokensBoard') runAfterClosingHostSettings(() => showPanel('tokens', { _afterModalClose: true }));
         else if (actionName === 'openRight') void openDashboardInRightPanel();
         else if (actionName === 'openPage') { setPanelDockMode('page', { persist: true }); syncHostSettingsUi(); }
         else if (actionName === 'copyUrl') {
@@ -21317,13 +21359,13 @@ speedPkSelection = speedPkSelection.filter(v => v !== id);
       onVerifyRuntime: () => verifyHotReloadAndRefreshQuota(),
       onOpenPluginPanel: (target) => {
         if (target === 'accounts') {
-          openPluginAccountsTab();
+          runAfterClosingHostSettings(() => openPluginAccountsTab({ _afterModalClose: true }));
         } else if (target === 'settings') {
           openContextSettings();
         } else if (target === 'quota') {
-          showPanel('quota');
+          runAfterClosingHostSettings(() => showPanel('quota', { _afterModalClose: true }));
         } else if (target === 'tokens') {
-          showPanel('tokens');
+          runAfterClosingHostSettings(() => showPanel('tokens', { _afterModalClose: true }));
         }
       },
       onOpenReleasePage: () => {

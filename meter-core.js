@@ -8650,8 +8650,14 @@
       if (u.protocol !== 'https:') return false;
       if (u.hostname === 'github.com') {
         const pathname = u.pathname.replace(/\/+$/, '');
+        const aetherPrefix = '/kyler-attendre/antigravity-aether';
         const repoPrefix = '/elviscjn-cjn/antigravity-context-viewer';
-        return pathname === repoPrefix || pathname.startsWith(repoPrefix + '/');
+        return (
+          pathname === aetherPrefix ||
+          pathname.startsWith(aetherPrefix + '/') ||
+          pathname === repoPrefix ||
+          pathname.startsWith(repoPrefix + '/')
+        );
       }
       if (u.hostname === 'linux.do') {
         const pathname = u.pathname.replace(/\/+$/, '');

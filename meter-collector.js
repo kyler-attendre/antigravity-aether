@@ -4553,20 +4553,22 @@ function savePluginSettings(payload = {}, options = {}) {
   }
   if (typeof payload.dockPosition === 'string' && validDockPositions.has(payload.dockPosition)) {
     topLevelUiPrefs.dockPosition = payload.dockPosition;
-    // 兼容映射到新字段
-    if (payload.dockPosition === 'compact' || payload.dockPosition === 'fixed') {
-      topLevelUiPrefs.topbarMode = 'compact';
-      topLevelUiPrefs.panelDockMode = 'popover';
-    } else if (payload.dockPosition === 'aux') {
-      topLevelUiPrefs.panelDockMode = 'aux';
-    } else if (payload.dockPosition === 'page') {
-      topLevelUiPrefs.panelDockMode = 'page';
-    } else if (payload.dockPosition === 'hide') {
-      topLevelUiPrefs.topbarMode = 'hidden';
-      topLevelUiPrefs.hideTopbar = true;
-    } else if (payload.dockPosition === 'flow') {
-      topLevelUiPrefs.topbarMode = 'full';
-      topLevelUiPrefs.panelDockMode = 'popover';
+    // 兼容映射到新字段：仅当本次未显式传入 topbarMode 且原 topbarMode 未锁定为 compact/hidden 时才从 legacy flow 推导
+    if (payload.topbarMode === undefined) {
+      if (payload.dockPosition === 'compact' || payload.dockPosition === 'fixed') {
+        topLevelUiPrefs.topbarMode = 'compact';
+        topLevelUiPrefs.panelDockMode = 'popover';
+      } else if (payload.dockPosition === 'aux') {
+        topLevelUiPrefs.panelDockMode = 'aux';
+      } else if (payload.dockPosition === 'page') {
+        topLevelUiPrefs.panelDockMode = 'page';
+      } else if (payload.dockPosition === 'hide') {
+        topLevelUiPrefs.topbarMode = 'hidden';
+        topLevelUiPrefs.hideTopbar = true;
+      } else if (payload.dockPosition === 'flow' && topLevelUiPrefs.topbarMode !== 'compact' && topLevelUiPrefs.topbarMode !== 'hidden') {
+        topLevelUiPrefs.topbarMode = 'full';
+        topLevelUiPrefs.panelDockMode = 'popover';
+      }
     }
   }
   if (typeof payload.hideTopbar === 'boolean') {
@@ -10079,7 +10081,7 @@ function collectTokenHistory(options = {}) {
 // 在线更新模块 (GitHub Releases 探测、SHA-256 校验与零依赖热安装)
 // ============================================================================
 
-const OFFICIAL_REPO = 'elviscjn-cjn/antigravity-context-viewer';
+const OFFICIAL_REPO = 'kyler-attendre/antigravity-aether';
 const OFFICIAL_RELEASES_API = `https://api.github.com/repos/${OFFICIAL_REPO}/releases`;
 const OFFICIAL_RELEASES_WEB_BASE = `https://github.com/${OFFICIAL_REPO}/releases`;
 const OFFICIAL_RELEASES_ATOM = `${OFFICIAL_RELEASES_WEB_BASE}.atom`;

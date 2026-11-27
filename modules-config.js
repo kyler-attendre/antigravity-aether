@@ -19,8 +19,12 @@ const { safeWriteJsonSync } = require('./meter-storage');
 const { parseAndValidateProxyUrl } = require('./meter-proxy');
 
 const SCHEMA_VERSION = '0.8.8';
-const FALLBACK_PROJECT_VERSION = '0.9.0';
-const FALLBACK_DISPLAY_VERSION = '0.9.0';
+const FALLBACK_PROJECT_VERSION = '1.0.0';
+const FALLBACK_DISPLAY_VERSION = '1.0.0';
+
+function isKnownPackageName(name) {
+  return name === 'antigravity-aether' || name === 'antigravity-context-viewer';
+}
 
 function resolveProjectVersion() {
   for (const pkgPath of [
@@ -32,7 +36,7 @@ function resolveProjectVersion() {
         const parsed = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
         if (
           parsed &&
-          parsed.name === 'antigravity-context-viewer' &&
+          isKnownPackageName(parsed.name) &&
           typeof parsed.version === 'string' &&
           parsed.version.trim()
         ) {
@@ -52,7 +56,7 @@ function resolveDisplayVersion() {
     try {
       if (fs.existsSync(pkgPath)) {
         const parsed = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-        if (parsed && parsed.name === 'antigravity-context-viewer' && typeof parsed.displayVersion === 'string' && parsed.displayVersion.trim()) {
+        if (parsed && isKnownPackageName(parsed.name) && typeof parsed.displayVersion === 'string' && parsed.displayVersion.trim()) {
           return parsed.displayVersion.trim();
         }
       }

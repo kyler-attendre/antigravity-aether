@@ -16420,3 +16420,517 @@
         align-items: flex-start;
       }
     }
+
+    /* 隐藏所有 CLI 相关入口、来源切换条与重复的旧标题栏/上游署名，保留全部核心业务功能 */
+    #badge-cli,
+    #overflow-cli-btn,
+    #radial-slot-cli,
+    #cli-launch-toast,
+    #aether-token-source-bar,
+    #src-tab-cli,
+    #btn-panel-github,
+    #btn-github-link,
+    #btn-github-repo,
+    .unlock-credit-row,
+    .aether-legacy-header,
+    #quota-accounts-entry-card {
+      display: none !important;
+    }
+
+    /* Aether Clay 暖陶土主色统一覆盖（消除用量面板残留的紫色） */
+    :host-context(html[data-ag-style="clay"]) {
+      --ag-token-accent-default: #C6613F;
+      --ag-accent: #C6613F;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]),
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) {
+      --ag-token-accent-default: #D97757;
+      --ag-accent: #D97757;
+    }
+
+    /* 640px 统一窗口内 4 列统计卡片自适应，防止右侧截断 */
+    #panel-tokens .t-card {
+      padding: 8px 9px;
+      min-width: 0;
+    }
+    #panel-tokens .t-card-sub {
+      font-size: 9.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Unified Cockpit Hub Bar — 四个视图绝对像素对齐（0px 跳动） */
+    .aether-hub-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      height: 48px !important;
+      padding: 0 14px !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+      border-bottom: 1px solid var(--ag-border-subtle);
+      background: transparent !important;
+      flex-shrink: 0 !important;
+    }
+    .aether-hub-tabs {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 2px;
+      border-radius: 9px;
+      background: rgba(128, 128, 128, 0.08);
+      border: 1px solid var(--ag-border-subtle);
+    }
+    .aether-hub-tab {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--ag-text-muted);
+      font: 500 11.5px/1 inherit;
+      padding: 6px 11px;
+      border-radius: 7px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
+    }
+    .aether-hub-tab:hover {
+      color: var(--ag-text-primary);
+    }
+    .aether-hub-tab.is-active {
+      background: var(--ag-bg-card, #ffffff);
+      color: var(--ag-text-primary);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.10);
+    }
+    :host-context(html[data-ag-style="clay"] body.theme-light) .aether-hub-tab.is-active {
+      background: #FFFFFF;
+      color: #141413;
+    }
+    .aether-hub-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .aether-hub-actions .panel-icon-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      font-size: 13px;
+      opacity: 0.72;
+      transition: opacity 120ms ease, background 120ms ease;
+    }
+    .aether-hub-actions .panel-icon-btn:hover {
+      opacity: 1;
+      background: rgba(128, 128, 128, 0.10);
+    }
+
+    /* Progressive Disclosure drawer inside Quota view */
+    .aether-quota-more {
+      margin-top: 8px;
+      border-top: 1px solid var(--ag-border-subtle);
+      padding-top: 7px;
+    }
+    .aether-quota-more-summary {
+      list-style: none;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--ag-text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 2px;
+      user-select: none;
+    }
+    .aether-quota-more-summary::-webkit-details-marker {
+      display: none;
+    }
+    .aether-quota-more-summary::after {
+      content: '▾';
+      font-size: 11px;
+      opacity: 0.7;
+      transition: transform 150ms ease;
+    }
+    .aether-quota-more[open] .aether-quota-more-summary::after {
+      transform: rotate(180deg);
+    }
+    .aether-quota-more[open] .aether-quota-more-summary {
+      margin-bottom: 8px;
+      color: var(--ag-text-secondary);
+    }
+    #tab-ctx-accounts {
+      display: none !important;
+    }
+    /* When Accounts tab is active inside #panel, hide the sub-tab bar so it feels like a clean standalone Accounts view */
+    #panel:has(#tab-ctx-accounts[aria-selected="true"]) #ctx-tabs-bar {
+      display: none !important;
+    }
+
+    #badge-quota {
+      display: inline-flex !important;
+      align-items: center;
+      gap: 7px;
+      padding: 0 8px;
+      border-radius: 999px;
+      border: 1px solid var(--ag-divider);
+      background: transparent;
+      transition: background 150ms ease, border-color 150ms ease;
+    }
+    #badge-quota:hover {
+      background: var(--ag-toolbar-bg-hover);
+      border-color: var(--ag-border-card);
+    }
+
+    .aether-quota-slot {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      line-height: 1;
+    }
+    .aether-quota-7d {
+      padding-left: 6px;
+      border-left: 1px solid var(--ag-divider);
+    }
+    .aether-quota-win-lbl {
+      font-size: 9.5px;
+      font-weight: 500;
+      color: var(--ag-text-muted);
+      letter-spacing: 0.01em;
+      text-transform: lowercase;
+    }
+    .quota-badge-7d-val,
+    .quota-badge-val {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .quota-ring-7d-fill {
+      stroke: var(--ag-token-accent-default, #D97757);
+      opacity: 0.85;
+    }
+    .aether-quota-mini-reset {
+      font-size: 10px;
+      font-weight: 450;
+      color: var(--ag-text-muted);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+      margin-left: 1px;
+    }
+    .aether-quota-reset {
+      font-size: 10.5px;
+      font-weight: 450;
+      color: var(--ag-text-muted);
+      padding-left: 6px;
+      border-left: 1px solid var(--ag-divider);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+    }
+
+    /* 精简圆环模式：始终保留 5h+7d 双圆环 + 下次刷新时间 + 上下文圆环，保持极致清爽 */
+    :host([data-topbar-mode="compact"]) #badge-quota .aether-quota-slot,
+    :host([data-topbar-mode="compact"]) #badge-quota .aether-quota-reset {
+      display: inline-flex !important;
+    }
+    :host([data-topbar-mode="compact"]) #badge-quota .quota-badge-val,
+    :host([data-topbar-mode="compact"]) #badge-quota .quota-badge-7d-val {
+      display: inline !important;
+    }
+
+    /* 统一单窗几何与基底色：额度 / 上下文 / 用量 / 账号 四个视图完全锁定同一位置、同一宽高（640×620）、同一内边距与同一底色 */
+    #panel:not([hidden]):not([data-panel-docked="true"]),
+    #panel-quota:not([hidden]):not([data-panel-docked="true"]),
+    #panel-tokens:not([hidden]):not([data-panel-docked="true"]) {
+      width: 640px !important;
+      height: min(620px, calc(100vh - 64px)) !important;
+      max-width: calc(100vw - 24px) !important;
+      padding: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #panel:not([data-panel-docked="true"]) > .aether-hub-bar,
+    #panel-quota:not([data-panel-docked="true"]) > .aether-hub-bar,
+    #panel-tokens:not([data-panel-docked="true"]) > .aether-hub-bar {
+      flex-shrink: 0 !important;
+    }
+
+    #panel:not([data-panel-docked="true"]) > #view-context,
+    #panel-quota:not([data-panel-docked="true"]) > #view-quota,
+    #panel-tokens:not([data-panel-docked="true"]) > #view-tokens {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      padding: 12px 14px 16px !important;
+      box-sizing: border-box !important;
+      background: transparent !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+    }
+
+    #panel-quota .quota-panel-body {
+      padding: 0 !important;
+      background: transparent !important;
+    }
+
+    #panel,
+    #panel-quota,
+    #panel-tokens {
+      border-radius: 14px !important;
+      border: 1px solid var(--ag-border-panel) !important;
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.24), 0 2px 10px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    /* Clay 主题下四页统一基底色与统一卡片色（消除冷白/灰底/暖底割裂） */
+    :host-context(html[data-ag-style="clay"]) #panel,
+    :host-context(html[data-ag-style="clay"]) #panel-quota,
+    :host-context(html[data-ag-style="clay"]) #panel-tokens {
+      background: #FAF9F5 !important;
+      background-image: none !important;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) #panel,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) #panel-quota,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) #panel-tokens,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) #panel,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) #panel-quota,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) #panel-tokens {
+      background: #242422 !important;
+      background-image: none !important;
+    }
+    :host-context(html[data-ag-style="clay"]) #pane-ctx-session,
+    :host-context(html[data-ag-style="clay"]) #pane-ctx-accounts,
+    :host-context(html[data-ag-style="clay"]) #pane-ctx-speed,
+    :host-context(html[data-ag-style="clay"]) #pane-ctx-models {
+      background: transparent !important;
+    }
+    :host-context(html[data-ag-style="clay"]) .ag-bento-card,
+    :host-context(html[data-ag-style="clay"]) .ctx-widget-card,
+    :host-context(html[data-ag-style="clay"]) .ctx-bento-card,
+    :host-context(html[data-ag-style="clay"]) .quota-subcard,
+    :host-context(html[data-ag-style="clay"]) .quota-pool-card,
+    :host-context(html[data-ag-style="clay"]) .quota-acct-card,
+    :host-context(html[data-ag-style="clay"]) .t-card,
+    :host-context(html[data-ag-style="clay"]) .token-stat-card,
+    :host-context(html[data-ag-style="clay"]) .key-card {
+      background: #FFFFFF !important;
+      border-color: rgba(20, 20, 19, 0.09) !important;
+      border-radius: 10px !important;
+      box-shadow: none !important;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .ag-bento-card,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .ctx-widget-card,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .ctx-bento-card,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .quota-subcard,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .quota-pool-card,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .quota-acct-card,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .t-card,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .token-stat-card,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .key-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .ag-bento-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .ctx-widget-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .ctx-bento-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .quota-subcard,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .quota-pool-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .quota-acct-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .t-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .token-stat-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .key-card {
+      background: #2D2D2A !important;
+      border-color: rgba(255, 255, 255, 0.09) !important;
+      border-radius: 10px !important;
+      box-shadow: none !important;
+    }
+    /* 上下文页所有选中胶囊统一到 Clay 陶土色（替换全部残留蓝紫色） */
+    :host-context(html[data-ag-style="clay"]) .ctx-preset-btn.active,
+    :host-context(html[data-ag-style="clay"]) #pane-ctx-session .ctx-preset-btn.active,
+    :host-context(html[data-ag-style="clay"]) .tl-filter-chip.active,
+    :host-context(html[data-ag-style="clay"]) .ctx-seg-btn.active {
+      background: rgba(198, 97, 63, 0.12) !important;
+      border-color: rgba(198, 97, 63, 0.36) !important;
+      color: #C6613F !important;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .ctx-preset-btn.active,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) #pane-ctx-session .ctx-preset-btn.active,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .tl-filter-chip.active,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .ctx-seg-btn.active {
+      background: rgba(217, 119, 87, 0.16) !important;
+      border-color: rgba(217, 119, 87, 0.42) !important;
+      color: #E89A7E !important;
+    }
+
+    .ctx-settings-card,
+    .quota-subcard,
+    .quota-pool-card,
+    .quota-acct-card,
+    .key-card,
+    .token-stat-card {
+      border-radius: 10px !important;
+      border-color: var(--ag-border-card) !important;
+      box-shadow: none !important;
+    }
+
+    /* 上下文二级标签栏：与「用量」页完全一致的轻量胶囊切换条，消除厚重灰框割裂感 */
+    #ctx-tabs-bar {
+      display: inline-flex !important;
+      align-items: center !important;
+      width: auto !important;
+      gap: 2px !important;
+      padding: 2px !important;
+      margin-bottom: 8px !important;
+      border-radius: 9px !important;
+      background: rgba(128, 128, 128, 0.07) !important;
+      border: 1px solid var(--ag-border-subtle) !important;
+    }
+    #ctx-tabs-bar .ctx-tab-btn {
+      flex: 0 0 auto !important;
+      padding: 5px 12px !important;
+      border-radius: 7px !important;
+      font-size: 11.5px !important;
+      font-weight: 500 !important;
+      letter-spacing: -0.01em !important;
+      color: var(--ag-text-muted) !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    #ctx-tabs-bar .ctx-tab-btn.active {
+      background: rgba(198, 97, 63, 0.12) !important;
+      color: #C6613F !important;
+      box-shadow: none !important;
+    }
+    :host([data-theme="dark"]) #ctx-tabs-bar .ctx-tab-btn.active,
+    :host([data-panel-tone="dark"]) #ctx-tabs-bar .ctx-tab-btn.active {
+      background: rgba(217, 119, 87, 0.18) !important;
+      color: #E89A7E !important;
+    }
+
+    /* 会话页极简总览模式：默认只展示 3 张核心遥测卡，隐藏复杂预设栏与 8 张深度排障卡；切到「深度排障」一键全部展开 */
+    #pane-ctx-session[data-aether-session-mode="overview"] #ctx-cockpit-toolbar {
+      display: none !important;
+    }
+    #pane-ctx-session[data-aether-session-mode="overview"] .ctx-widget-card:not([data-widget-id="overview-kpi"]):not([data-widget-id="token-breakdown"]):not([data-widget-id="timing-speed"]) {
+      display: none !important;
+    }
+    #pane-ctx-session[data-aether-session-mode="overview"] #ctx-bento-grid {
+      display: grid !important;
+      grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+      gap: 10px !important;
+    }
+    #pane-ctx-session[data-aether-session-mode="overview"] .ctx-widget-card[data-widget-id="overview-kpi"],
+    #pane-ctx-session[data-aether-session-mode="overview"] .ctx-widget-card[data-widget-id="token-breakdown"],
+    #pane-ctx-session[data-aether-session-mode="overview"] .ctx-widget-card[data-widget-id="timing-speed"] {
+      grid-column: span 12 !important;
+      position: static !important;
+      inset: auto !important;
+      transform: none !important;
+    }
+
+    /* 合并进「额度」页的账号切换卡片：与上方额度卡片保持完全一致的 Aether 卡片语言 */
+    #view-quota .aether-merged-accounts {
+      margin-top: 10px !important;
+      padding: 12px !important;
+      border-radius: 10px !important;
+      border: 1px solid var(--ag-border-card) !important;
+      background: var(--ag-bg-card, #ffffff) !important;
+    }
+    :host-context(html[data-ag-style="clay"]) #view-quota .aether-merged-accounts {
+      background: #FFFFFF !important;
+      border-color: rgba(20, 20, 19, 0.09) !important;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) #view-quota .aether-merged-accounts,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) #view-quota .aether-merged-accounts {
+      background: #2D2D2A !important;
+      border-color: rgba(255, 255, 255, 0.09) !important;
+    }
+
+    /* 彻底消除上下文卡片静息态的四角线框与编辑角标噪点，悬停卡片时才柔滑浮现编辑控件 */
+    #pane-ctx-session .ctx-widget-resize-handle,
+    #pane-ctx-session .ag-widget-resize-handle,
+    #pane-ctx-session .ctx-widget-drag-handle,
+    #pane-ctx-session .ctx-widget-hdr-actions {
+      opacity: 0 !important;
+      transition: opacity 150ms ease !important;
+    }
+    #pane-ctx-session .ctx-widget-card:hover .ctx-widget-resize-handle,
+    #pane-ctx-session .ctx-widget-card:hover .ag-widget-resize-handle,
+    #pane-ctx-session .ctx-widget-card:hover .ctx-widget-drag-handle,
+    #pane-ctx-session .ctx-widget-card:hover .ctx-widget-hdr-actions,
+    #pane-ctx-session .ctx-widget-card.is-resizing .ag-widget-resize-handle {
+      opacity: 0.78 !important;
+    }
+
+    /* 640px 统一工作台下四格统计卡自适应不裁切 */
+    .token-stat-cards {
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      gap: 6px !important;
+    }
+    .t-card {
+      min-width: 0 !important;
+      padding: 8px 9px !important;
+    }
+    .t-card-val {
+      font-size: 16px !important;
+    }
+    .t-card-sub,
+    .t-card-cost {
+      font-size: 9.5px !important;
+      line-height: 1.35 !important;
+      white-space: normal !important;
+      word-break: break-word !important;
+    }
+
+    /* 彻底消除用量页在浅色/深色模式下残留的霓虹紫色，统一到 Aether Clay 陶土色系 */
+    :host-context(html[data-ag-style="clay"]) {
+      --ag-ring-used-default: #D97757;
+      --ag-token-accent-default: #D97757;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="light"]),
+    :host-context(html[data-ag-style="clay"] body.theme-light) {
+      --ag-ring-used-default: #C6613F;
+      --ag-token-accent-default: #C6613F;
+    }
+    :host-context(html[data-ag-style="clay"]) .tcb-ratio-bar-fill {
+      background: linear-gradient(90deg, #B44F2E, #C6613F, #E08A6C) !important;
+    }
+    :host-context(html[data-ag-style="clay"]) .plan-summary-price-badge {
+      background: rgba(198, 97, 63, 0.11) !important;
+      border-color: rgba(198, 97, 63, 0.32) !important;
+      color: #C6613F !important;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .plan-summary-price-badge,
+    :host-context(html[data-ag-style="clay"] body.theme-dark) .plan-summary-price-badge {
+      background: rgba(217, 119, 87, 0.15) !important;
+      border-color: rgba(217, 119, 87, 0.38) !important;
+      color: #E89A7E !important;
+    }
+    :host-context(html[data-ag-style="clay"]) .heat-tab-thumb {
+      background: #C6613F !important;
+      opacity: 0.18 !important;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .heat-tab-thumb,
+    :host-context(html[data-ag-style="clay"] body.theme-dark) .heat-tab-thumb {
+      background: #D97757 !important;
+      opacity: 0.24 !important;
+    }
+    :host-context(html[data-ag-style="clay"]) .view-switch-bar .switch-pill-btn.active,
+    :host-context(html[data-ag-style="clay"]) .source-switch-bar .switch-pill-btn.active {
+      background: rgba(198, 97, 63, 0.14) !important;
+      color: #C6613F !important;
+      border-color: rgba(198, 97, 63, 0.32) !important;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .view-switch-bar .switch-pill-btn.active,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .source-switch-bar .switch-pill-btn.active {
+      background: rgba(217, 119, 87, 0.18) !important;
+      color: #E89A7E !important;
+      border-color: rgba(217, 119, 87, 0.35) !important;
+    }
+
+    .switch-pill-btn {
+      border-radius: 7px !important;
+      font-weight: 500 !important;
+      transition: background 140ms ease, border-color 140ms ease, opacity 140ms ease !important;
+    }

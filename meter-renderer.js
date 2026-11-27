@@ -1,6 +1,6 @@
 (function () {
-  const METER_VERSION = '0.9.3';
-  const METER_DISPLAY_VERSION = '0.9.3';
+  const METER_VERSION = '1.0.0';
+  const METER_DISPLAY_VERSION = '1.0.0';
 
   'use strict';
   if ((location.protocol !== 'https:' && location.protocol !== 'http:') || location.hostname !== '127.0.0.1') return;
@@ -300,8 +300,8 @@
   let quotaBadgeWindowMode = (() => {
     try {
       const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('ag_quota_badge_window_mode') : null;
-      return VALID_QUOTA_WINDOW_MODES.includes(saved) ? saved : 'auto';
-    } catch { return 'auto'; }
+      return VALID_QUOTA_WINDOW_MODES.includes(saved) ? saved : 'both';
+    } catch { return 'both'; }
   })();
   // 旧 4 选 1 单选仅作为迁移输入保留，运行期真实状态由 3 个独立布尔开关承载
   let legacyQuickMenuStyle = (() => {
@@ -16890,24 +16890,553 @@
         align-items: flex-start;
       }
     }
+
+    /* 隐藏所有 CLI 相关入口、来源切换条与重复的旧标题栏/上游署名，保留全部核心业务功能 */
+    #badge-cli,
+    #overflow-cli-btn,
+    #radial-slot-cli,
+    #cli-launch-toast,
+    #aether-token-source-bar,
+    #src-tab-cli,
+    #btn-panel-github,
+    #btn-github-link,
+    #btn-github-repo,
+    .unlock-credit-row,
+    .aether-legacy-header,
+    #quota-accounts-entry-card {
+      display: none !important;
+    }
+
+    /* Aether Clay 暖陶土主色统一覆盖（消除用量面板残留的紫色） */
+    :host-context(html[data-ag-style="clay"]) {
+      --ag-token-accent-default: #C6613F;
+      --ag-accent: #C6613F;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]),
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) {
+      --ag-token-accent-default: #D97757;
+      --ag-accent: #D97757;
+    }
+
+    /* 640px 统一窗口内 4 列统计卡片自适应，防止右侧截断 */
+    #panel-tokens .t-card {
+      padding: 8px 9px;
+      min-width: 0;
+    }
+    #panel-tokens .t-card-sub {
+      font-size: 9.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Unified Cockpit Hub Bar — 四个视图绝对像素对齐（0px 跳动） */
+    .aether-hub-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      height: 48px !important;
+      padding: 0 14px !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+      border-bottom: 1px solid var(--ag-border-subtle);
+      background: transparent !important;
+      flex-shrink: 0 !important;
+    }
+    .aether-hub-tabs {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 2px;
+      border-radius: 9px;
+      background: rgba(128, 128, 128, 0.08);
+      border: 1px solid var(--ag-border-subtle);
+    }
+    .aether-hub-tab {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--ag-text-muted);
+      font: 500 11.5px/1 inherit;
+      padding: 6px 11px;
+      border-radius: 7px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
+    }
+    .aether-hub-tab:hover {
+      color: var(--ag-text-primary);
+    }
+    .aether-hub-tab.is-active {
+      background: var(--ag-bg-card, #ffffff);
+      color: var(--ag-text-primary);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.10);
+    }
+    :host-context(html[data-ag-style="clay"] body.theme-light) .aether-hub-tab.is-active {
+      background: #FFFFFF;
+      color: #141413;
+    }
+    .aether-hub-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .aether-hub-actions .panel-icon-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      font-size: 13px;
+      opacity: 0.72;
+      transition: opacity 120ms ease, background 120ms ease;
+    }
+    .aether-hub-actions .panel-icon-btn:hover {
+      opacity: 1;
+      background: rgba(128, 128, 128, 0.10);
+    }
+
+    /* Progressive Disclosure drawer inside Quota view */
+    .aether-quota-more {
+      margin-top: 8px;
+      border-top: 1px solid var(--ag-border-subtle);
+      padding-top: 7px;
+    }
+    .aether-quota-more-summary {
+      list-style: none;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--ag-text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 2px;
+      user-select: none;
+    }
+    .aether-quota-more-summary::-webkit-details-marker {
+      display: none;
+    }
+    .aether-quota-more-summary::after {
+      content: '▾';
+      font-size: 11px;
+      opacity: 0.7;
+      transition: transform 150ms ease;
+    }
+    .aether-quota-more[open] .aether-quota-more-summary::after {
+      transform: rotate(180deg);
+    }
+    .aether-quota-more[open] .aether-quota-more-summary {
+      margin-bottom: 8px;
+      color: var(--ag-text-secondary);
+    }
+    #tab-ctx-accounts {
+      display: none !important;
+    }
+    /* When Accounts tab is active inside #panel, hide the sub-tab bar so it feels like a clean standalone Accounts view */
+    #panel:has(#tab-ctx-accounts[aria-selected="true"]) #ctx-tabs-bar {
+      display: none !important;
+    }
+
+    #badge-quota {
+      display: inline-flex !important;
+      align-items: center;
+      gap: 7px;
+      padding: 0 8px;
+      border-radius: 999px;
+      border: 1px solid var(--ag-divider);
+      background: transparent;
+      transition: background 150ms ease, border-color 150ms ease;
+    }
+    #badge-quota:hover {
+      background: var(--ag-toolbar-bg-hover);
+      border-color: var(--ag-border-card);
+    }
+
+    .aether-quota-slot {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      line-height: 1;
+    }
+    .aether-quota-7d {
+      padding-left: 6px;
+      border-left: 1px solid var(--ag-divider);
+    }
+    .aether-quota-win-lbl {
+      font-size: 9.5px;
+      font-weight: 500;
+      color: var(--ag-text-muted);
+      letter-spacing: 0.01em;
+      text-transform: lowercase;
+    }
+    .quota-badge-7d-val,
+    .quota-badge-val {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .quota-ring-7d-fill {
+      stroke: var(--ag-token-accent-default, #D97757);
+      opacity: 0.85;
+    }
+    .aether-quota-mini-reset {
+      font-size: 10px;
+      font-weight: 450;
+      color: var(--ag-text-muted);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+      margin-left: 1px;
+    }
+    .aether-quota-reset {
+      font-size: 10.5px;
+      font-weight: 450;
+      color: var(--ag-text-muted);
+      padding-left: 6px;
+      border-left: 1px solid var(--ag-divider);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+    }
+
+    /* 精简圆环模式：始终保留 5h+7d 双圆环 + 下次刷新时间 + 上下文圆环，保持极致清爽 */
+    :host([data-topbar-mode="compact"]) #badge-quota .aether-quota-slot,
+    :host([data-topbar-mode="compact"]) #badge-quota .aether-quota-reset {
+      display: inline-flex !important;
+    }
+    :host([data-topbar-mode="compact"]) #badge-quota .quota-badge-val,
+    :host([data-topbar-mode="compact"]) #badge-quota .quota-badge-7d-val {
+      display: inline !important;
+    }
+
+    /* 统一单窗几何与基底色：额度 / 上下文 / 用量 / 账号 四个视图完全锁定同一位置、同一宽高（640×620）、同一内边距与同一底色 */
+    #panel:not([hidden]):not([data-panel-docked="true"]),
+    #panel-quota:not([hidden]):not([data-panel-docked="true"]),
+    #panel-tokens:not([hidden]):not([data-panel-docked="true"]) {
+      width: 640px !important;
+      height: min(620px, calc(100vh - 64px)) !important;
+      max-width: calc(100vw - 24px) !important;
+      padding: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #panel:not([data-panel-docked="true"]) > .aether-hub-bar,
+    #panel-quota:not([data-panel-docked="true"]) > .aether-hub-bar,
+    #panel-tokens:not([data-panel-docked="true"]) > .aether-hub-bar {
+      flex-shrink: 0 !important;
+    }
+
+    #panel:not([data-panel-docked="true"]) > #view-context,
+    #panel-quota:not([data-panel-docked="true"]) > #view-quota,
+    #panel-tokens:not([data-panel-docked="true"]) > #view-tokens {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      padding: 12px 14px 16px !important;
+      box-sizing: border-box !important;
+      background: transparent !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+    }
+
+    #panel-quota .quota-panel-body {
+      padding: 0 !important;
+      background: transparent !important;
+    }
+
+    #panel,
+    #panel-quota,
+    #panel-tokens {
+      border-radius: 14px !important;
+      border: 1px solid var(--ag-border-panel) !important;
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.24), 0 2px 10px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    /* Clay 主题下四页统一基底色与统一卡片色（消除冷白/灰底/暖底割裂） */
+    :host-context(html[data-ag-style="clay"]) #panel,
+    :host-context(html[data-ag-style="clay"]) #panel-quota,
+    :host-context(html[data-ag-style="clay"]) #panel-tokens {
+      background: #FAF9F5 !important;
+      background-image: none !important;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) #panel,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) #panel-quota,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) #panel-tokens,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) #panel,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) #panel-quota,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) #panel-tokens {
+      background: #242422 !important;
+      background-image: none !important;
+    }
+    :host-context(html[data-ag-style="clay"]) #pane-ctx-session,
+    :host-context(html[data-ag-style="clay"]) #pane-ctx-accounts,
+    :host-context(html[data-ag-style="clay"]) #pane-ctx-speed,
+    :host-context(html[data-ag-style="clay"]) #pane-ctx-models {
+      background: transparent !important;
+    }
+    :host-context(html[data-ag-style="clay"]) .ag-bento-card,
+    :host-context(html[data-ag-style="clay"]) .ctx-widget-card,
+    :host-context(html[data-ag-style="clay"]) .ctx-bento-card,
+    :host-context(html[data-ag-style="clay"]) .quota-subcard,
+    :host-context(html[data-ag-style="clay"]) .quota-pool-card,
+    :host-context(html[data-ag-style="clay"]) .quota-acct-card,
+    :host-context(html[data-ag-style="clay"]) .t-card,
+    :host-context(html[data-ag-style="clay"]) .token-stat-card,
+    :host-context(html[data-ag-style="clay"]) .key-card {
+      background: #FFFFFF !important;
+      border-color: rgba(20, 20, 19, 0.09) !important;
+      border-radius: 10px !important;
+      box-shadow: none !important;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .ag-bento-card,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .ctx-widget-card,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .ctx-bento-card,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .quota-subcard,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .quota-pool-card,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .quota-acct-card,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .t-card,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .token-stat-card,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .key-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .ag-bento-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .ctx-widget-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .ctx-bento-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .quota-subcard,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .quota-pool-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .quota-acct-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .t-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .token-stat-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .key-card {
+      background: #2D2D2A !important;
+      border-color: rgba(255, 255, 255, 0.09) !important;
+      border-radius: 10px !important;
+      box-shadow: none !important;
+    }
+    /* 上下文页所有选中胶囊统一到 Clay 陶土色（替换全部残留蓝紫色） */
+    :host-context(html[data-ag-style="clay"]) .ctx-preset-btn.active,
+    :host-context(html[data-ag-style="clay"]) #pane-ctx-session .ctx-preset-btn.active,
+    :host-context(html[data-ag-style="clay"]) .tl-filter-chip.active,
+    :host-context(html[data-ag-style="clay"]) .ctx-seg-btn.active {
+      background: rgba(198, 97, 63, 0.12) !important;
+      border-color: rgba(198, 97, 63, 0.36) !important;
+      color: #C6613F !important;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .ctx-preset-btn.active,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) #pane-ctx-session .ctx-preset-btn.active,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .tl-filter-chip.active,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .ctx-seg-btn.active {
+      background: rgba(217, 119, 87, 0.16) !important;
+      border-color: rgba(217, 119, 87, 0.42) !important;
+      color: #E89A7E !important;
+    }
+
+    .ctx-settings-card,
+    .quota-subcard,
+    .quota-pool-card,
+    .quota-acct-card,
+    .key-card,
+    .token-stat-card {
+      border-radius: 10px !important;
+      border-color: var(--ag-border-card) !important;
+      box-shadow: none !important;
+    }
+
+    /* 上下文二级标签栏：与「用量」页完全一致的轻量胶囊切换条，消除厚重灰框割裂感 */
+    #ctx-tabs-bar {
+      display: inline-flex !important;
+      align-items: center !important;
+      width: auto !important;
+      gap: 2px !important;
+      padding: 2px !important;
+      margin-bottom: 8px !important;
+      border-radius: 9px !important;
+      background: rgba(128, 128, 128, 0.07) !important;
+      border: 1px solid var(--ag-border-subtle) !important;
+    }
+    #ctx-tabs-bar .ctx-tab-btn {
+      flex: 0 0 auto !important;
+      padding: 5px 12px !important;
+      border-radius: 7px !important;
+      font-size: 11.5px !important;
+      font-weight: 500 !important;
+      letter-spacing: -0.01em !important;
+      color: var(--ag-text-muted) !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    #ctx-tabs-bar .ctx-tab-btn.active {
+      background: rgba(198, 97, 63, 0.12) !important;
+      color: #C6613F !important;
+      box-shadow: none !important;
+    }
+    :host([data-theme="dark"]) #ctx-tabs-bar .ctx-tab-btn.active,
+    :host([data-panel-tone="dark"]) #ctx-tabs-bar .ctx-tab-btn.active {
+      background: rgba(217, 119, 87, 0.18) !important;
+      color: #E89A7E !important;
+    }
+
+    /* 会话页极简总览模式：默认只展示 3 张核心遥测卡，隐藏复杂预设栏与 8 张深度排障卡；切到「深度排障」一键全部展开 */
+    #pane-ctx-session[data-aether-session-mode="overview"] #ctx-cockpit-toolbar {
+      display: none !important;
+    }
+    #pane-ctx-session[data-aether-session-mode="overview"] .ctx-widget-card:not([data-widget-id="overview-kpi"]):not([data-widget-id="token-breakdown"]):not([data-widget-id="timing-speed"]) {
+      display: none !important;
+    }
+    #pane-ctx-session[data-aether-session-mode="overview"] #ctx-bento-grid {
+      display: grid !important;
+      grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+      gap: 10px !important;
+    }
+    #pane-ctx-session[data-aether-session-mode="overview"] .ctx-widget-card[data-widget-id="overview-kpi"],
+    #pane-ctx-session[data-aether-session-mode="overview"] .ctx-widget-card[data-widget-id="token-breakdown"],
+    #pane-ctx-session[data-aether-session-mode="overview"] .ctx-widget-card[data-widget-id="timing-speed"] {
+      grid-column: span 12 !important;
+      position: static !important;
+      inset: auto !important;
+      transform: none !important;
+    }
+
+    /* 合并进「额度」页的账号切换卡片：与上方额度卡片保持完全一致的 Aether 卡片语言 */
+    #view-quota .aether-merged-accounts {
+      margin-top: 10px !important;
+      padding: 12px !important;
+      border-radius: 10px !important;
+      border: 1px solid var(--ag-border-card) !important;
+      background: var(--ag-bg-card, #ffffff) !important;
+    }
+    :host-context(html[data-ag-style="clay"]) #view-quota .aether-merged-accounts {
+      background: #FFFFFF !important;
+      border-color: rgba(20, 20, 19, 0.09) !important;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) #view-quota .aether-merged-accounts,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) #view-quota .aether-merged-accounts {
+      background: #2D2D2A !important;
+      border-color: rgba(255, 255, 255, 0.09) !important;
+    }
+
+    /* 彻底消除上下文卡片静息态的四角线框与编辑角标噪点，悬停卡片时才柔滑浮现编辑控件 */
+    #pane-ctx-session .ctx-widget-resize-handle,
+    #pane-ctx-session .ag-widget-resize-handle,
+    #pane-ctx-session .ctx-widget-drag-handle,
+    #pane-ctx-session .ctx-widget-hdr-actions {
+      opacity: 0 !important;
+      transition: opacity 150ms ease !important;
+    }
+    #pane-ctx-session .ctx-widget-card:hover .ctx-widget-resize-handle,
+    #pane-ctx-session .ctx-widget-card:hover .ag-widget-resize-handle,
+    #pane-ctx-session .ctx-widget-card:hover .ctx-widget-drag-handle,
+    #pane-ctx-session .ctx-widget-card:hover .ctx-widget-hdr-actions,
+    #pane-ctx-session .ctx-widget-card.is-resizing .ag-widget-resize-handle {
+      opacity: 0.78 !important;
+    }
+
+    /* 640px 统一工作台下四格统计卡自适应不裁切 */
+    .token-stat-cards {
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      gap: 6px !important;
+    }
+    .t-card {
+      min-width: 0 !important;
+      padding: 8px 9px !important;
+    }
+    .t-card-val {
+      font-size: 16px !important;
+    }
+    .t-card-sub,
+    .t-card-cost {
+      font-size: 9.5px !important;
+      line-height: 1.35 !important;
+      white-space: normal !important;
+      word-break: break-word !important;
+    }
+
+    /* 彻底消除用量页在浅色/深色模式下残留的霓虹紫色，统一到 Aether Clay 陶土色系 */
+    :host-context(html[data-ag-style="clay"]) {
+      --ag-ring-used-default: #D97757;
+      --ag-token-accent-default: #D97757;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="light"]),
+    :host-context(html[data-ag-style="clay"] body.theme-light) {
+      --ag-ring-used-default: #C6613F;
+      --ag-token-accent-default: #C6613F;
+    }
+    :host-context(html[data-ag-style="clay"]) .tcb-ratio-bar-fill {
+      background: linear-gradient(90deg, #B44F2E, #C6613F, #E08A6C) !important;
+    }
+    :host-context(html[data-ag-style="clay"]) .plan-summary-price-badge {
+      background: rgba(198, 97, 63, 0.11) !important;
+      border-color: rgba(198, 97, 63, 0.32) !important;
+      color: #C6613F !important;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .plan-summary-price-badge,
+    :host-context(html[data-ag-style="clay"] body.theme-dark) .plan-summary-price-badge {
+      background: rgba(217, 119, 87, 0.15) !important;
+      border-color: rgba(217, 119, 87, 0.38) !important;
+      color: #E89A7E !important;
+    }
+    :host-context(html[data-ag-style="clay"]) .heat-tab-thumb {
+      background: #C6613F !important;
+      opacity: 0.18 !important;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .heat-tab-thumb,
+    :host-context(html[data-ag-style="clay"] body.theme-dark) .heat-tab-thumb {
+      background: #D97757 !important;
+      opacity: 0.24 !important;
+    }
+    :host-context(html[data-ag-style="clay"]) .view-switch-bar .switch-pill-btn.active,
+    :host-context(html[data-ag-style="clay"]) .source-switch-bar .switch-pill-btn.active {
+      background: rgba(198, 97, 63, 0.14) !important;
+      color: #C6613F !important;
+      border-color: rgba(198, 97, 63, 0.32) !important;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .view-switch-bar .switch-pill-btn.active,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .source-switch-bar .switch-pill-btn.active {
+      background: rgba(217, 119, 87, 0.18) !important;
+      color: #E89A7E !important;
+      border-color: rgba(217, 119, 87, 0.35) !important;
+    }
+
+    .switch-pill-btn {
+      border-radius: 7px !important;
+      font-weight: 500 !important;
+      transition: background 140ms ease, border-color 140ms ease, opacity 140ms ease !important;
+    }
   </style>
 
-  <!-- 顶部基本单元 0: 模型额度圆环入口（工具组最左侧） -->
+  <!-- 顶部基本单元 0: 模型额度双圆环入口（5h + 7d 共存 + 下次刷新时间） -->
 <button id="badge-quota" class="ag-unit ag-unit-quota" type="button" aria-label="模型剩余额度与重置状态"
   data-i18n-aria="badge.quota.aria" aria-expanded="false" data-quota-state="unknown" title="模型额度看板"
   data-i18n-title="quota.panel.aria">
-  <svg id="quota-ring-svg" class="quota-ring-svg" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-    <circle id="quota-ring-track" class="quota-ring-track" cx="9" cy="9" r="6.5" fill="none" stroke-width="2.1">
-    </circle>
-    <circle id="quota-ring-fill" class="quota-ring-fill" cx="9" cy="9" r="6.5" fill="none" stroke-width="2.1"
-      stroke-linecap="round" transform="rotate(-90 9 9)" stroke-dasharray="10 30.84" stroke-dashoffset="0"></circle>
-    <circle id="quota-ring-pace-dot" class="quota-ring-pace-dot" cx="9" cy="2.5" r="1.45" hidden></circle>
-  </svg>
-  <span class="quota-badge-metric">
-    <span id="quota-badge-val" class="quota-badge-val" data-i18n="quota.state.unknown">未知</span>
-    <span id="quota-badge-tag" class="quota-badge-tag" hidden></span>
-    <span id="quota-badge-dual" class="quota-badge-dual" hidden></span>
+  <span class="aether-quota-slot aether-quota-5h">
+    <svg id="quota-ring-svg" class="quota-ring-svg" width="17" height="17" viewBox="0 0 18 18" aria-hidden="true">
+      <circle id="quota-ring-track" class="quota-ring-track" cx="9" cy="9" r="6.5" fill="none" stroke-width="2.1">
+      </circle>
+      <circle id="quota-ring-fill" class="quota-ring-fill" cx="9" cy="9" r="6.5" fill="none" stroke-width="2.1"
+        stroke-linecap="round" transform="rotate(-90 9 9)" stroke-dasharray="10 30.84" stroke-dashoffset="0"></circle>
+      <circle id="quota-ring-pace-dot" class="quota-ring-pace-dot" cx="9" cy="2.5" r="1.45" hidden></circle>
+    </svg>
+    <span id="quota-badge-5h-lbl" class="aether-quota-win-lbl" hidden>5h</span>
+    <span class="quota-badge-metric">
+      <span id="quota-badge-val" class="quota-badge-val" data-i18n="quota.state.unknown">未知</span>
+      <span id="quota-badge-tag" class="quota-badge-tag" hidden></span>
+      <span id="quota-badge-dual" class="quota-badge-dual" hidden></span>
+    </span>
+    <span id="quota-badge-5h-reset" class="aether-quota-mini-reset" hidden></span>
   </span>
+  <span id="quota-ring-7d-wrap" class="aether-quota-slot aether-quota-7d" hidden>
+    <svg id="quota-ring-7d-svg" class="quota-ring-svg quota-ring-7d-svg" width="17" height="17" viewBox="0 0 18 18" aria-hidden="true">
+      <circle class="quota-ring-track" cx="9" cy="9" r="6.5" fill="none" stroke-width="2.1"></circle>
+      <circle id="quota-ring-7d-fill" class="quota-ring-fill quota-ring-7d-fill" cx="9" cy="9" r="6.5" fill="none" stroke-width="2.1"
+        stroke-linecap="round" transform="rotate(-90 9 9)" stroke-dasharray="0 40.84" stroke-dashoffset="0"></circle>
+    </svg>
+    <span class="aether-quota-win-lbl">7d</span>
+    <span id="quota-badge-7d-val" class="quota-badge-7d-val">--</span>
+    <span id="quota-badge-7d-reset" class="aether-quota-mini-reset" hidden></span>
+  </span>
+  <span id="quota-badge-reset" class="aether-quota-reset" hidden></span>
 </button>
 
 <!-- 顶部基本单元 1: 上下文小圆环（与速度入口紧邻） -->
@@ -17189,13 +17718,27 @@
 
 <!-- 弹出式面板 1: 会话上下文与速度监控 (#panel, 450px) -->
 <section id="panel" class="ag-panel" hidden aria-label="会话与上下文详情" data-i18n-aria="panel.ctx.aria">
-  <div class="panel-header-bar">
+  <div class="aether-hub-bar" data-aether-hub-host="context">
+    <div class="aether-hub-tabs" role="tablist" aria-label="Aether Cockpit">
+      <button type="button" class="aether-hub-tab" data-aether-hub="quota" data-i18n="aether.hub.quota">额度</button>
+      <button type="button" class="aether-hub-tab is-active" data-aether-hub="context" data-i18n="aether.hub.context">会话</button>
+      <button type="button" class="aether-hub-tab" data-aether-hub="tokens" data-i18n="aether.hub.tokens">用量</button>
+    </div>
+    <div class="aether-hub-actions">
+      <button type="button" class="panel-icon-btn" data-aether-hub="dock-right" title="在右侧栏停靠打开">◫</button>
+      <button type="button" class="panel-icon-btn" data-aether-hub="toggle-theme" title="切换浅色/深色">🌓</button>
+      <button type="button" class="panel-icon-btn" data-aether-hub="toggle-lang" title="切换中/英文" style="font-size:10.5px;width:auto;padding:0 6px;">中/EN</button>
+      <button type="button" class="panel-icon-btn aether-hub-settings-btn" data-aether-hub="settings" title="设置">⚙</button>
+      <button type="button" class="panel-icon-btn aether-hub-close-btn" data-aether-hub="close" title="收起">×</button>
+    </div>
+  </div>
+  <div class="panel-header-bar aether-legacy-header">
     <div class="panel-title">
       <span class="panel-title-text" style="font-size:13px;font-weight:600;color:var(--ag-text-primary)"
         data-i18n="panel.ctx.title" title="Antigravity Context Meter" data-i18n-title="panel.ctx.fullName"
         aria-label="Antigravity Context Meter" data-i18n-aria="panel.ctx.fullName">💬 当前会话上下文</span>
       <span id="v" class="version-pill-btn" role="button" tabindex="0" title="点击跳转到版本更新与关于设置"
-        data-i18n-title="header.versionBtn.title">0.9.3</span>
+        data-i18n-title="header.versionBtn.title">1.0.0</span>
     </div>
     <div class="panel-header-actions ctx-header-actions">
       <!-- 插件面板三语言快速切换分段按钮 -->
@@ -17239,10 +17782,12 @@
   </div>
 
   <div id="view-context">
-    <!-- 顶部 4 分页标签栏 -->
-    <div id="ctx-tabs-bar" class="ctx-tabs-bar" role="tablist" aria-label="上下文面板分页" data-i18n-aria="tabs.aria">
+    <!-- 顶部精简分页标签栏：总览 | 深度排障 | 速度对比 | 模型设置 -->
+    <div id="ctx-tabs-bar" class="ctx-tabs-bar" role="tablist" aria-label="会话面板分页" data-i18n-aria="tabs.aria">
       <button id="tab-ctx-session" class="ctx-tab-btn active" type="button" role="tab" aria-selected="true"
-        data-ctx-tab="session" data-i18n="tab.session">当前会话</button>
+        data-ctx-tab="session" data-aether-session-tab="overview">总览</button>
+      <button id="tab-ctx-debug" class="ctx-tab-btn" type="button" role="tab" aria-selected="false"
+        data-aether-session-tab="debug">深度排障</button>
       <button id="tab-ctx-speed" class="ctx-tab-btn" type="button" role="tab" aria-selected="false" data-ctx-tab="speed"
         data-i18n="tab.speed">速度对比</button>
       <button id="tab-ctx-models" class="ctx-tab-btn" type="button" role="tab" aria-selected="false"
@@ -17251,8 +17796,8 @@
         data-ctx-tab="accounts" data-i18n="tab.accounts">账号与共享池</button>
     </div>
 
-    <!-- 分页 1: 当前会话（12 列自适应自由拖拽 Bento 全景驾驶舱） -->
-    <div id="pane-ctx-session" class="ctx-tab-pane" role="tabpanel" aria-labelledby="tab-ctx-session">
+    <!-- 分页 1: 当前会话（默认极简 3 卡总览，切到「深度排障」展开全部 11 个 Bento 组件） -->
+    <div id="pane-ctx-session" class="ctx-tab-pane" role="tabpanel" aria-labelledby="tab-ctx-session" data-aether-session-mode="overview">
       <div id="ctx-scope-bar" class="ctx-scope-bar" hidden role="region" aria-label="同屏会话视角切换"
         data-i18n-aria="scope.bar.aria">
         <div id="ctx-scope-pills" class="ctx-scope-pills" role="tablist" aria-label="同屏会话列表"
@@ -18642,41 +19187,8 @@
 
     </div>
 
-    <!-- 分页 4: 账号与共享池 -->
+    <!-- 分页 4: 账号与共享池（账号切换已合并至「额度」主视图，此处仅保留兼容容器） -->
     <div id="pane-ctx-accounts" class="ctx-tab-pane" role="tabpanel" aria-labelledby="tab-ctx-accounts" hidden>
-      <!-- 块 1: 账号切换 -->
-      <div class="ctx-settings-card ctx-accounts-block" id="ctx-accounts-switch-section">
-        <div class="quota-subsec-header">
-          <span class="quota-subsec-title" data-i18n="accountsTab.switchTitle">👤 账号切换</span>
-          <div class="quota-subsec-actions">
-            <button id="btn-tab-acct-refresh" class="switch-pill-btn" type="button"
-              data-i18n="accounts.refreshEntry">刷新账号</button>
-            <button id="btn-tab-acct-import-current" class="switch-pill-btn" type="button"
-              data-i18n="accounts.importCurrent">导入当前</button>
-            <button id="btn-tab-acct-import-tools" class="switch-pill-btn" type="button" hidden
-              data-i18n="accounts.importTools">导入 Tools</button>
-            <button id="btn-tab-acct-oauth-add" class="switch-pill-btn active" type="button"
-              data-i18n="accounts.oauthAdd">+ 登录添加</button>
-          </div>
-        </div>
-        <div id="ctx-acct-active-summary" class="quota-acct-meta"></div>
-        <div id="ctx-acct-feedback" class="quota-acct-feedback" hidden></div>
-        <div id="ctx-accounts-list" class="quota-accounts-list"></div>
-
-        <div id="ctx-autoswitch-summary-card" class="quota-subcard" style="margin-top:6px">
-          <div class="quota-subcard-row">
-            <span class="quota-subsec-title" data-i18n="accountsTab.autoSwitchTitle">自动切号状态与规则摘要</span>
-            <span id="ctx-autoswitch-status-pill" class="key-pill pill-muted"
-              data-i18n="accounts.status.disabled">已关闭</span>
-          </div>
-          <div id="ctx-autoswitch-reason" class="quota-muted-note"></div>
-          <div id="ctx-autoswitch-rule-summary" class="quota-muted-note"></div>
-          <div class="quota-subsec-actions" style="margin-top:4px">
-            <button id="btn-ctx-open-autoswitch-rules" class="switch-pill-btn active" type="button"
-              data-i18n="accounts.editRulesBtn">编辑自动切号规则</button>
-          </div>
-        </div>
-      </div>
 
       <!-- 块 2: 共享额度池 -->
       <div class="ctx-settings-card ctx-accounts-block" id="ctx-shared-pools-section">
@@ -19645,7 +20157,21 @@
 
 <!-- 弹出式面板 2: Token 用量一览 (#panel-tokens, 730px) -->
 <section id="panel-tokens" class="ag-panel" hidden aria-label="Token 用量一览" data-i18n-aria="badge.tokens.aria">
-  <div class="panel-header-bar">
+  <div class="aether-hub-bar" data-aether-hub-host="tokens">
+    <div class="aether-hub-tabs" role="tablist" aria-label="Aether Cockpit">
+      <button type="button" class="aether-hub-tab" data-aether-hub="quota" data-i18n="aether.hub.quota">额度</button>
+      <button type="button" class="aether-hub-tab" data-aether-hub="context" data-i18n="aether.hub.context">会话</button>
+      <button type="button" class="aether-hub-tab is-active" data-aether-hub="tokens" data-i18n="aether.hub.tokens">用量</button>
+    </div>
+    <div class="aether-hub-actions">
+      <button type="button" class="panel-icon-btn" data-aether-hub="dock-right" title="在右侧栏停靠打开">◫</button>
+      <button type="button" class="panel-icon-btn" data-aether-hub="toggle-theme" title="切换浅色/深色">🌓</button>
+      <button type="button" class="panel-icon-btn" data-aether-hub="toggle-lang" title="切换中/英文" style="font-size:10.5px;width:auto;padding:0 6px;">中/EN</button>
+      <button type="button" class="panel-icon-btn aether-hub-settings-btn" data-aether-hub="settings" title="设置">⚙</button>
+      <button type="button" class="panel-icon-btn aether-hub-close-btn" data-aether-hub="close" title="收起">×</button>
+    </div>
+  </div>
+  <div class="panel-header-bar aether-legacy-header">
     <div class="panel-title panel-title-tokens">
       <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6"
         stroke-linecap="round" stroke-linejoin="round"
@@ -19656,7 +20182,7 @@
         style="font-size:13px;font-weight:600;color:var(--ag-custom-token-accent,var(--ag-token-accent-default))"
         data-i18n="tokens.title">本机已记录用量</span>
       <span id="v-tokens" class="version-pill-btn" role="button" tabindex="0" title="点击跳转到版本更新与关于设置"
-        data-i18n-title="header.versionBtn.title">0.9.3</span>
+        data-i18n-title="header.versionBtn.title">1.0.0</span>
     </div>
     <div class="panel-header-actions">
       <button id="theme-toggle-tokens" class="panel-icon-btn" type="button" aria-label="切换浅色/深色主题"
@@ -19669,7 +20195,7 @@
 
   <div id="view-tokens">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px">
-      <div class="source-switch-bar">
+      <div id="aether-token-source-bar" class="source-switch-bar">
         <span style="font-size:10.5px;color:var(--ag-text-muted);padding:0 4px"
           data-i18n="tokens.sourceLabel">来源:</span>
         <button id="src-tab-all" class="switch-pill-btn active" type="button" data-i18n="tokens.src.all">全部</button>
@@ -20310,8 +20836,7 @@
       <div class="model-usage-header">
         <div>
           <div class="model-usage-title" data-i18n="modelsUsage.title">按模型 Token 用量</div>
-          <div id="model-usage-subtitle" class="model-usage-subtitle" data-i18n="modelsUsage.subtitle">查看桌面端与 CLI 各模型每日
-            Token 消耗及占比分布。</div>
+          <div id="model-usage-subtitle" class="model-usage-subtitle" data-i18n="modelsUsage.subtitle">查看各模型每日 Token 消耗及占比分布。</div>
         </div>
       </div>
 
@@ -20896,7 +21421,7 @@
     <div style="display:flex;align-items:center;gap:6px">
       <span id="up-pop-title" style="font-weight:600;font-size:12px;color:var(--ag-text-primary)"
         data-i18n="update.title">🚀 检查更新</span>
-      <span id="up-pop-ver" class="key-pill pill-good" style="font-size:10px">0.9.3</span>
+      <span id="up-pop-ver" class="key-pill pill-good" style="font-size:10px">1.0.0</span>
     </div>
     <button id="btn-close-update-pop" class="panel-icon-btn" type="button"
       style="padding:1px 5px;font-size:13px">×</button>
@@ -20925,7 +21450,22 @@
 
 <!-- 弹出式面板 3: 模型额度看板 (#panel-quota, 460px) -->
 <section id="panel-quota" class="ag-panel ag-panel-flex" hidden aria-label="模型额度看板" data-i18n-aria="quota.panel.aria">
-  <div class="panel-header-bar">
+  <div class="aether-hub-bar" data-aether-hub-host="quota">
+    <div class="aether-hub-tabs" role="tablist" aria-label="Aether Cockpit">
+      <button type="button" class="aether-hub-tab is-active" data-aether-hub="quota" data-i18n="aether.hub.quota">额度</button>
+      <button type="button" class="aether-hub-tab" data-aether-hub="context" data-i18n="aether.hub.context">会话</button>
+      <button type="button" class="aether-hub-tab" data-aether-hub="tokens" data-i18n="aether.hub.tokens">用量</button>
+    </div>
+    <div class="aether-hub-actions">
+      <button type="button" class="panel-icon-btn aether-hub-refresh-btn" data-aether-hub="refresh-quota" title="刷新额度">↻</button>
+      <button type="button" class="panel-icon-btn" data-aether-hub="dock-right" title="在右侧栏停靠打开">◫</button>
+      <button type="button" class="panel-icon-btn" data-aether-hub="toggle-theme" title="切换浅色/深色">🌓</button>
+      <button type="button" class="panel-icon-btn" data-aether-hub="toggle-lang" title="切换中/英文" style="font-size:10.5px;width:auto;padding:0 6px;">中/EN</button>
+      <button type="button" class="panel-icon-btn aether-hub-settings-btn" data-aether-hub="settings" title="设置">⚙</button>
+      <button type="button" class="panel-icon-btn aether-hub-close-btn" data-aether-hub="close" title="收起">×</button>
+    </div>
+  </div>
+  <div class="panel-header-bar aether-legacy-header">
     <div class="panel-title">
       <span class="panel-title-text" style="font-size:13px;font-weight:600;color:var(--ag-text-primary)"
         data-i18n="quota.panel.title">◔ 模型额度看板</span>
@@ -20952,22 +21492,6 @@
         data-i18n="quota.restartBtn">重启客户端</button>
     </div>
 
-    <!-- 独立三时间分列展示（数据更新时间 / 下次自动刷新 / 当前额度重置） -->
-    <div id="quota-times-grid" class="quota-times-grid">
-      <div class="quota-time-cell">
-        <div class="quota-time-label" data-i18n="quota.time.updated">数据更新时间</div>
-        <div id="quota-time-updated" class="quota-time-val">—</div>
-      </div>
-      <div class="quota-time-cell">
-        <div class="quota-time-label" data-i18n="quota.time.nextRefresh">下次自动刷新</div>
-        <div id="quota-time-next" class="quota-time-val">—</div>
-      </div>
-      <div class="quota-time-cell">
-        <div class="quota-time-label" data-i18n="quota.time.reset">当前额度重置</div>
-        <div id="quota-time-reset" class="quota-time-val">—</div>
-      </div>
-    </div>
-
     <!-- 当前会话模型额度总览 -->
     <div id="quota-current-card" class="quota-current-card">
       <div class="key-header">
@@ -20984,9 +21508,43 @@
           <span id="quota-cur-pace-pill" class="quota-pace-tier-pill" hidden></span>
         </div>
       </div>
-      <div id="quota-cur-alert" class="quota-cur-alert" hidden></div>
       <div id="quota-cur-buckets" class="quota-buckets-list"></div>
-      <div id="quota-cur-models-chips" class="quota-models-chips" hidden></div>
+      <details id="aether-quota-more" class="aether-quota-more">
+        <summary class="aether-quota-more-summary" data-i18n="aether.quota.more">详情、模型列表与缓存保活</summary>
+        <div id="quota-cur-alert" class="quota-cur-alert" hidden></div>
+        <div id="quota-cur-models-chips" class="quota-models-chips" hidden></div>
+        <!-- 独立三时间分列展示（折叠收纳于详情中，保持主视图极简） -->
+        <div id="quota-times-grid" class="quota-times-grid">
+          <div class="quota-time-cell">
+            <div class="quota-time-label" data-i18n="quota.time.updated">数据更新时间</div>
+            <div id="quota-time-updated" class="quota-time-val">—</div>
+          </div>
+          <div class="quota-time-cell">
+            <div class="quota-time-label" data-i18n="quota.time.nextRefresh">下次自动刷新</div>
+            <div id="quota-time-next" class="quota-time-val">—</div>
+          </div>
+          <div class="quota-time-cell">
+            <div class="quota-time-label" data-i18n="quota.time.reset">当前额度重置</div>
+            <div id="quota-time-reset" class="quota-time-val">—</div>
+          </div>
+        </div>
+        <!-- 模型 Prompt Cache 保活协议与保障（收纳进详情抽屉，保持首屏纯净） -->
+        <div id="quota-keepalive-section" class="quota-accounts-section" style="margin-top:8px">
+          <div class="quota-subsec-header">
+            <span class="quota-subsec-title" data-i18n="keepalive.title">🧊 模型缓存保活状态与协议核查</span>
+            <span id="keepalive-status-pill" class="key-pill pill-muted" data-i18n="accounts.keepaliveOff">默认关闭</span>
+          </div>
+          <div class="quota-subcard">
+            <div id="keepalive-protocol-summary" class="quota-muted-note"></div>
+            <div id="keepalive-experiment-summary" class="quota-muted-note" style="margin-top:4px"></div>
+            <div class="quota-subcard-row" style="margin-top:6px">
+              <span id="keepalive-runtime-note" class="quota-muted-note"></span>
+              <button id="btn-keepalive-stop" class="switch-pill-btn" type="button" hidden
+                data-i18n="keepalive.stopBtn">立即停止保活</button>
+            </div>
+          </div>
+        </div>
+      </details>
     </div>
 
     <!-- 共享额度池清单（主池仅显示上方唯一双轨，此处展示其余共享额度池并支持点击展开） -->
@@ -20998,8 +21556,42 @@
     </div>
     <div id="quota-pools-list" class="quota-pools-list"></div>
 
-    <!-- 多账号与自动切号摘要直达入口（共用设置页账号状态与未保存草稿） -->
-    <div id="quota-accounts-entry-card" class="quota-subcard quota-accounts-entry-card">
+    <!-- 合并后的多账号切换与自动切号模块（与额度同屏，彻底消除独立账号页与重复共享池） -->
+    <div class="ctx-settings-card ctx-accounts-block aether-merged-accounts" id="ctx-accounts-switch-section">
+      <div class="quota-subsec-header">
+        <span class="quota-subsec-title" data-i18n="accountsTab.switchTitle">👤 账号切换</span>
+        <div class="quota-subsec-actions">
+          <button id="btn-tab-acct-refresh" class="switch-pill-btn" type="button"
+            data-i18n="accounts.refreshEntry">刷新账号</button>
+          <button id="btn-tab-acct-import-current" class="switch-pill-btn" type="button"
+            data-i18n="accounts.importCurrent">导入当前</button>
+          <button id="btn-tab-acct-import-tools" class="switch-pill-btn" type="button" hidden
+            data-i18n="accounts.importTools">导入 Tools</button>
+          <button id="btn-tab-acct-oauth-add" class="switch-pill-btn active" type="button"
+            data-i18n="accounts.oauthAdd">+ 登录添加</button>
+        </div>
+      </div>
+      <div id="ctx-acct-active-summary" class="quota-acct-meta"></div>
+      <div id="ctx-acct-feedback" class="quota-acct-feedback" hidden></div>
+      <div id="ctx-accounts-list" class="quota-accounts-list"></div>
+
+      <div id="ctx-autoswitch-summary-card" class="quota-subcard" style="margin-top:6px">
+        <div class="quota-subcard-row">
+          <span class="quota-subsec-title" data-i18n="accountsTab.autoSwitchTitle">自动切号状态与规则摘要</span>
+          <span id="ctx-autoswitch-status-pill" class="key-pill pill-muted"
+            data-i18n="accounts.status.disabled">已关闭</span>
+        </div>
+        <div id="ctx-autoswitch-reason" class="quota-muted-note"></div>
+        <div id="ctx-autoswitch-rule-summary" class="quota-muted-note"></div>
+        <div class="quota-subsec-actions" style="margin-top:4px">
+          <button id="btn-ctx-open-autoswitch-rules" class="switch-pill-btn active" type="button"
+            data-i18n="accounts.editRulesBtn">编辑自动切号规则</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 兼容隐藏占位（原有入口已由上方完整账号区承接） -->
+    <div id="quota-accounts-entry-card" class="quota-subcard quota-accounts-entry-card" hidden>
       <div class="quota-subcard-row">
         <span class="quota-subsec-title" data-i18n="accounts.panelTitle">👤 多账号切换与阈值自动切号</span>
         <span id="quota-entry-autoswitch-pill" class="key-pill pill-muted"
@@ -21012,23 +21604,6 @@
           data-i18n="accounts.manageBtn">管理账号</button>
         <button id="btn-quota-entry-refresh-accts" class="switch-pill-btn" type="button"
           data-i18n="accounts.refreshEntry">刷新账号</button>
-      </div>
-    </div>
-
-    <!-- 模型 Prompt Cache 保活协议与保障（保留在额度面板内作为诊断信息） -->
-    <div id="quota-keepalive-section" class="quota-accounts-section">
-      <div class="quota-subsec-header">
-        <span class="quota-subsec-title" data-i18n="keepalive.title">🧊 模型缓存保活状态与协议核查</span>
-        <span id="keepalive-status-pill" class="key-pill pill-muted" data-i18n="accounts.keepaliveOff">默认关闭</span>
-      </div>
-      <div class="quota-subcard">
-        <div id="keepalive-protocol-summary" class="quota-muted-note"></div>
-        <div id="keepalive-experiment-summary" class="quota-muted-note" style="margin-top:4px"></div>
-        <div class="quota-subcard-row" style="margin-top:6px">
-          <span id="keepalive-runtime-note" class="quota-muted-note"></span>
-          <button id="btn-keepalive-stop" class="switch-pill-btn" type="button" hidden
-            data-i18n="keepalive.stopBtn">立即停止保活</button>
-        </div>
       </div>
     </div>
   </div>
@@ -21492,6 +22067,11 @@ const PANEL_I18N = {
   'prefs.toggleFailed': { 'zh-CN': '保存失败 · 已恢复原值 · {reason}', 'zh-TW': '儲存失敗 · 已還原原值 · {reason}', en: 'Failed · Reverted · {reason}' },
   'prefs.saveError': { 'zh-CN': '未保存 · {reason}', 'zh-TW': '未儲存 · {reason}', en: 'Save failed · {reason}' },
   'accounts.ruleUnsaved': { 'zh-CN': '有未保存的切号规则', 'zh-TW': '有未儲存的切號規則', en: 'Unsaved switching rule' },
+  'aether.hub.quota': { 'zh-CN': '额度', 'zh-TW': '額度', en: 'Quota' },
+  'aether.hub.context': { 'zh-CN': '会话', 'zh-TW': '會話', en: 'Session' },
+  'aether.hub.tokens': { 'zh-CN': '用量', 'zh-TW': '用量', en: 'Usage' },
+  'aether.hub.accounts': { 'zh-CN': '账号', 'zh-TW': '帳號', en: 'Accounts' },
+  'aether.quota.more': { 'zh-CN': '详情、模型列表与缓存保活', 'zh-TW': '詳情、模型清單與快取保活', en: 'Details, Models & Keepalive' },
   'accounts.ruleSavedOn': { 'zh-CN': '规则已保存，自动切号已启用', 'zh-TW': '規則已儲存，自動切號已啟用', en: 'Rule saved. Auto-switch is on.' },
   'accounts.ruleSavedOff': { 'zh-CN': '规则已保存，自动切号已关闭', 'zh-TW': '規則已儲存，自動切號已關閉', en: 'Rule saved. Auto-switch is off.' },
   'accounts.toggleNeedSaveDraft': { 'zh-CN': '规则有未保存修改，请先点击保存规则', 'zh-TW': '規則有未儲存修改，請先點擊儲存規則', en: 'Save pending rule edits before toggling auto-switch.' },
@@ -22065,7 +22645,7 @@ const PANEL_I18N = {
   'composer.speedQueued': { 'zh-CN': '排队中…', 'zh-TW': '排隊中…', en: 'Queued…' },
   'composer.speedWaiting': { 'zh-CN': '等待首字…', 'zh-TW': '等待首字…', en: 'Waiting for TTFT…' },
   'modelsUsage.title': { 'zh-CN': '按模型 Token 用量', 'zh-TW': '依模型 Token 用量', en: 'Usage history' },
-  'modelsUsage.subtitle': { 'zh-CN': '查看桌面端与 CLI 各模型每日 Token 消耗及占比分布。', 'zh-TW': '檢視桌面端與 CLI 各模型每日 Token 消耗及佔比分布。', en: 'Daily token consumption and share by model across Desktop and CLI.' },
+  'modelsUsage.subtitle': { 'zh-CN': '查看各模型每日 Token 消耗及占比分布。', 'zh-TW': '檢視各模型每日 Token 消耗及佔比分布。', en: 'Daily token consumption and share by model.' },
   'modelsUsage.groupModel': { 'zh-CN': '按模型', 'zh-TW': '依模型', en: 'By model' },
   'modelsUsage.groupVariant': { 'zh-CN': '按档位', 'zh-TW': '依檔位', en: 'By variant' },
   'modelsUsage.metricTotal': { 'zh-CN': '含缓存', 'zh-TW': '含快取', en: 'All tokens' },
@@ -23936,7 +24516,7 @@ const PANEL_I18N = {
   'tokens.insights.sortCost': { 'zh-CN': '按估算花费', 'zh-TW': '依估算花費', en: 'Highest Est. Cost' },
   'tokens.insights.empty': { 'zh-CN': '当前筛选条件下暂无归档洞察记录', 'zh-TW': '目前篩選條件下暫無歸檔洞察紀錄', en: 'No matching session archives found' },
 
-  'hostSettings.subtitle': { 'zh-CN': '与插件共享状态 · 在此查看前后台版本、在线更新与常用开关', 'zh-TW': '與外掛共用狀態 · 在此檢視前後台版本、線上更新與常用開關', en: 'Shared plugin state · inspect frontend/backend versions, updates and preferences' },
+  'hostSettings.subtitle': { 'zh-CN': 'Aether 遥测看板、额度监控、账号管理与系统配置', 'zh-TW': 'Aether 遙測看板、額度監控、帳號管理與系統設定', en: 'Aether telemetry cockpit, quota monitor, account manager and system preferences' },
   'hostSettings.btn.accounts': { 'zh-CN': '账号与自动切号', 'zh-TW': '帳號與自動切號', en: 'Accounts & Switch' },
   'hostSettings.btn.quota': { 'zh-CN': '模型额度看板', 'zh-TW': '模型額度看板', en: 'Model Quota' },
   'hostSettings.btn.tokens': { 'zh-CN': '已记录用量', 'zh-TW': '已記錄用量', en: 'Recorded Usage' },
@@ -23992,7 +24572,7 @@ const PANEL_I18N = {
   'ns.themeMode.light': { 'zh-CN': '浅色', 'zh-TW': '淺色', en: 'Light' },
   'ns.themeMode.dark': { 'zh-CN': '深色', 'zh-TW': '深色', en: 'Dark' },
   'ns.panelLang.title': { 'zh-CN': '插件面板语言', 'zh-TW': '外掛面板語言', en: 'Plugin Panel Language' },
-  'ns.panelLang.desc': { 'zh-CN': '仅控制 Context Meter 面板与设置语言，不随宿主界面切换', 'zh-TW': '僅控制 Context Meter 面板與設定語言，不隨宿主介面切換', en: 'Controls Context Meter panel and settings language independently' },
+  'ns.panelLang.desc': { 'zh-CN': '仅控制 Aether 面板与设置语言，不随宿主界面切换', 'zh-TW': '僅控制 Aether 面板與設定語言，不隨宿主介面切換', en: 'Controls Aether panel and settings language independently' },
   'ns.topbarMode.desc': { 'zh-CN': '控制顶栏常驻状态入口的展示形式', 'zh-TW': '控制頂欄常駐狀態入口的展示形式', en: 'Controls how the persistent status entry appears in the top bar' },
   'ns.panelDockMode.title': { 'zh-CN': '面板显示位置', 'zh-TW': '面板顯示位置', en: 'Panel Dock Position' },
   'ns.panelDockMode.desc': { 'zh-CN': '切换详情面板打开时的承载容器', 'zh-TW': '切換詳情面板開啟時的承載容器', en: 'Choose where the detail panel opens' },
@@ -31061,9 +31641,10 @@ try {
         if (isPickerMenu) panelEl.setAttribute?.('data-placement', openAbove ? 'top' : 'bottom');
       };
 
-      placePanel(el('panel'), 472, el(activeContextAnchorId) || el('badge'));
-      placePanel(el('panel-quota'), 460, el(activeQuotaAnchorId) || el('badge-quota'));
-      placePanel(el('panel-tokens'), 730, el(activeTokensAnchorId) || el('badge-tokens'));
+      const UNIFIED_HUB_W = 640;
+      placePanel(el('panel'), UNIFIED_HUB_W, host);
+      placePanel(el('panel-quota'), UNIFIED_HUB_W, host);
+      placePanel(el('panel-tokens'), UNIFIED_HUB_W, host);
       placePanel(el('overflow-menu'), 220, el(activePickerAnchorId || 'badge-overflow') || el('badge-overflow'));
       positionColorPickerPopover();
       if (typeof syncContextPanelContainerWidthTier === 'function') syncContextPanelContainerWidthTier();
@@ -31469,6 +32050,11 @@ try {
       });
       return;
     }
+    if (typeof syncAetherHubActive === 'function') {
+      if (target === 'quota') syncAetherHubActive('quota');
+      else if (target === 'tokens') syncAetherHubActive('tokens');
+      else if (target === 'context') syncAetherHubActive(activeContextTab === 'accounts' ? 'accounts' : 'context');
+    }
     // PR #83：切页或收起额度看板时立即取消待恢复任务，与 #81 切页滚动记忆互不干扰
     if (target !== 'quota' && typeof cancelQuotaScrollRestore === 'function') {
       cancelQuotaScrollRestore();
@@ -31860,6 +32446,7 @@ try {
     } else {
       activeQuotaAnchorId = anchorId || 'badge-quota';
       showPanel('quota');
+      if (typeof refreshAccountsOverview === 'function') void refreshAccountsOverview({ silent: true });
     }
   }
 
@@ -38297,12 +38884,8 @@ let activeCnyTimerId = null;
   }
 
   el('badge-quota')?.addEventListener('click', e => {
-    if (e?.altKey || e?.detail === 0) {
-      e?.preventDefault?.();
-      toggleQuota('badge-quota');
-      return;
-    }
-    cycleQuotaBadgeWindowMode();
+    e?.preventDefault?.();
+    toggleQuota('badge-quota');
   });
   let badgeLongPressTimer = null;
   let badgeLongPressTriggered = false;
@@ -38327,6 +38910,105 @@ let activeCnyTimerId = null;
   el('badge-speed')?.addEventListener('click', () => toggleContext('badge-speed'));
   el('badge-tokens').addEventListener('click', () => toggleTokens('badge-tokens'));
   el('badge-overflow')?.addEventListener('click', toggleOverflowMenu);
+
+  // Aether Unified Cockpit Hub Bar: single seamless navigation across Quota / Context / Tokens / Accounts / Settings
+  function syncAetherHubActive(activeKey) {
+    const bars = shadow.querySelectorAll?.('.aether-hub-bar') || [];
+    for (const bar of bars) {
+      const tabs = bar.querySelectorAll?.('.aether-hub-tab') || [];
+      for (const tab of tabs) {
+        const isAct = tab.getAttribute('data-aether-hub') === activeKey;
+        tab.classList.toggle('is-active', isAct);
+        tab.setAttribute('aria-selected', isAct ? 'true' : 'false');
+      }
+    }
+  }
+  for (const hubBar of Array.from(shadow.querySelectorAll?.('.aether-hub-bar') || [])) {
+    hubBar.addEventListener('click', (e) => {
+      const btn = e.target?.closest?.('[data-aether-hub]');
+      if (!btn) return;
+      const target = btn.getAttribute('data-aether-hub');
+      if (target === 'quota') {
+        showPanel('quota');
+        syncAetherHubActive('quota');
+        if (typeof refreshAccountsOverview === 'function') void refreshAccountsOverview({ silent: true });
+      } else if (target === 'context') {
+        showPanel('context');
+        if (activeContextTab === 'accounts' || activeContextTab === 'settings') switchContextTab('session');
+        syncAetherHubActive('context');
+      } else if (target === 'tokens') {
+        showPanel('tokens');
+        syncAetherHubActive('tokens');
+      } else if (target === 'settings') {
+        openContextSettings();
+      } else if (target === 'refresh-quota') {
+        void syncQuotaFromHost(true, { manual: true });
+        if (typeof refreshAccountsOverview === 'function') void refreshAccountsOverview({ silent: true });
+      } else if (target === 'dock-right') {
+        void openDashboardInRightPanel();
+      } else if (target === 'toggle-theme') {
+        el('theme-toggle')?.click?.();
+      } else if (target === 'toggle-lang') {
+        const nextLang = currentPanelLanguage === 'en' ? 'zh-CN' : 'en';
+        el(`btn-top-lang-${nextLang}`)?.click?.();
+      } else if (target === 'close') {
+        showPanel('none');
+      }
+    });
+  }
+
+  // Aether 会话页精简双模式：默认「总览」（3核心卡），点击「深度排障」展开全部 11 个 Bento 排障组件
+  function setAetherSessionMode(mode) {
+    const nextMode = mode === 'debug' ? 'debug' : 'overview';
+    const pane = el('pane-ctx-session');
+    if (pane) pane.setAttribute('data-aether-session-mode', nextMode);
+    const btnOverview = el('tab-ctx-session');
+    const btnDebug = el('tab-ctx-debug');
+    if (activeContextTab === 'session') {
+      if (btnOverview) {
+        btnOverview.classList.toggle('active', nextMode === 'overview');
+        btnOverview.setAttribute('aria-selected', nextMode === 'overview' ? 'true' : 'false');
+      }
+      if (btnDebug) {
+        btnDebug.classList.toggle('active', nextMode === 'debug');
+        btnDebug.setAttribute('aria-selected', nextMode === 'debug' ? 'true' : 'false');
+      }
+    }
+  }
+  el('tab-ctx-session')?.addEventListener('click', () => {
+    setAetherSessionMode('overview');
+  });
+  el('tab-ctx-debug')?.addEventListener('click', () => {
+    switchContextTab('session');
+    setAetherSessionMode('debug');
+  });
+  el('tab-ctx-speed')?.addEventListener('click', () => {
+    const btnDebug = el('tab-ctx-debug');
+    if (btnDebug) { btnDebug.classList.remove('active'); btnDebug.setAttribute('aria-selected', 'false'); }
+  });
+  el('tab-ctx-models')?.addEventListener('click', () => {
+    const btnDebug = el('tab-ctx-debug');
+    if (btnDebug) { btnDebug.classList.remove('active'); btnDebug.setAttribute('aria-selected', 'false'); }
+  });
+
+  // Linear/Raycast keyboard ergonomics: 1/2/3 switch 3 Hub tabs (额度 / 会话 / 用量) when open
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('keydown', (e) => {
+      if (state.disposed || !isAnyPanelOpen()) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const active = (shadow.activeElement || document.activeElement);
+      const tag = String(active?.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || active?.isContentEditable) return;
+      if (e.key === '1') {
+        e.preventDefault?.();
+        showPanel('quota');
+        syncAetherHubActive('quota');
+        if (typeof refreshAccountsOverview === 'function') void refreshAccountsOverview({ silent: true });
+      }
+      else if (e.key === '2') { e.preventDefault?.(); showPanel('context'); if (activeContextTab === 'accounts' || activeContextTab === 'settings') switchContextTab('session'); syncAetherHubActive('context'); }
+      else if (e.key === '3') { e.preventDefault?.(); showPanel('tokens'); syncAetherHubActive('tokens'); }
+    });
+  }
 
   // 紧凑面板切换选择器事件：点击切换当前面板不关闭右栏/重置会话；键盘方向键可导航
   el('overflow-quota-btn')?.addEventListener('click', () => switchPanelFromPicker('quota'));
@@ -40909,15 +41591,22 @@ let activeCnyTimerId = null;
   };
 
   function openPluginAccountsTab(showOpts = {}) {
-    showPanel('context', showOpts);
-    switchContextTab('accounts');
+    showPanel('quota', showOpts);
+    if (typeof syncAetherHubActive === 'function') syncAetherHubActive('quota');
     if (typeof refreshAccountsOverview === 'function') void refreshAccountsOverview({ silent: true });
     if (typeof renderQuotaBoard === 'function') renderQuotaBoard(Date.now(), { animate: false });
+    const acctSec = el('ctx-accounts-switch-section');
+    if (acctSec && typeof acctSec.scrollIntoView === 'function') {
+      setTimeout(() => { try { acctSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch { } }, 60);
+    }
   }
 
   function switchContextTab(tabName) {
     const normTab = tabName === 'settings' ? 'settings' : tabName;
     if (normTab !== 'session' && normTab !== 'models' && normTab !== 'speed' && normTab !== 'accounts' && normTab !== 'settings') return;
+    if (typeof syncAetherHubActive === 'function') {
+      syncAetherHubActive(normTab === 'accounts' ? 'accounts' : 'context');
+    }
     if (normTab !== 'session') closeCockpitWidgetManager();
     if (activeContextTab !== 'settings' && normTab === 'settings') {
       prevTabBeforeSettings = activeContextTab;
@@ -49194,7 +49883,7 @@ speedPkSelection = speedPkSelection.filter(v => v !== id);
         }
         if (preserveSessionView && (panelDockMode === 'page' || dockPosition === 'page')) {
           syncDockPositionUi();
-        } else if (!savedPanelDockMode && normalizedSavedDock && VALID_DOCK_POSITIONS.includes(normalizedSavedDock) && normalizedSavedDock !== dockPosition) {
+        } else if (!savedTopbarMode && !savedPanelDockMode && normalizedSavedDock && VALID_DOCK_POSITIONS.includes(normalizedSavedDock) && normalizedSavedDock !== dockPosition) {
           setDockPosition(normalizedSavedDock, { persist: false });
         } else {
           syncDockPositionUi();
@@ -49428,7 +50117,7 @@ speedPkSelection = speedPkSelection.filter(v => v !== id);
   }
 
   function openGithubRepo(pathSuffix = '') {
-    const url = 'https://github.com/elviscjn-cjn/antigravity-context-viewer' + pathSuffix;
+    const url = 'https://github.com/kyler-attendre/antigravity-aether' + pathSuffix;
     if (typeof window !== 'undefined' && typeof window.contextMeterAPI?.openExternal === 'function') {
       window.contextMeterAPI.openExternal(url);
     } else {
@@ -55454,16 +56143,195 @@ const {
     grid-template-columns: 1fr;
   }
 }
+
+/* =====================================================================
+   Aether Editorial Settings Refactor
+   - Sticky 5-category navigation bar (zero features removed)
+   - Harmonized Claude Clay light/dark card hierarchy, typography & spacing
+   ===================================================================== */
+.ag-ns-page {
+  padding: 20px 26px 40px 26px !important;
+  gap: 0 !important;
+}
+
+.ag-ns-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding-bottom: 14px !important;
+  margin-bottom: 12px !important;
+  border-bottom: 1px solid var(--ns-border, rgba(128, 128, 128, 0.14)) !important;
+}
+
+.ag-ns-title {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.25 !important;
+  margin: 0 0 4px 0 !important;
+}
+
+.ag-ns-title-wrap {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+.ag-ns-subtitle {
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+  opacity: 0.70 !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.ag-ns-header-links {
+  display: inline-flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex-shrink: 0 !important;
+  padding-top: 2px;
+}
+
+.ag-ns-header-links .ag-ns-btn {
+  height: 28px !important;
+  padding: 0 10px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border-radius: 7px !important;
+  white-space: nowrap !important;
+}
+
+.ag-ns-cat-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  margin: 0 0 18px 0;
+  border-radius: 10px;
+  background: var(--ns-seg-bg, rgba(128, 128, 128, 0.08));
+  border: 1px solid var(--ns-border, rgba(128, 128, 128, 0.12));
+  backdrop-filter: blur(10px);
+  overflow-x: auto;
+}
+
+.ag-ns-cat-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--ns-muted, inherit);
+  font: 500 12px/1 inherit;
+  padding: 7px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+.ag-ns-cat-btn:hover {
+  color: var(--ns-fg, inherit);
+  background: rgba(128, 128, 128, 0.08);
+}
+
+.ag-ns-cat-btn.is-active {
+  background: var(--ns-card-bg, #ffffff);
+  color: var(--ns-fg, inherit);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.09);
+}
+
+.ag-ns-group {
+  margin-bottom: 22px !important;
+}
+
+.ag-ns-group.is-cat-hidden {
+  display: none !important;
+}
+
+.ag-ns-group-title {
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  margin: 0 0 8px 2px !important;
+  opacity: 0.78 !important;
+}
+
+.ag-ns-card {
+  border-radius: 12px !important;
+  border-color: var(--ns-border, rgba(128, 128, 128, 0.14)) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.025) !important;
+}
+
+.ag-ns-row {
+  padding: 13px 16px !important;
+  gap: 16px !important;
+}
+
+.ag-ns-row-title {
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.005em !important;
+}
+
+.ag-ns-row-desc {
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+  opacity: 0.68 !important;
+  margin-top: 2px !important;
+}
+
+.ag-ns-seg {
+  border-radius: 8px !important;
+  padding: 2px !important;
+}
+
+.ag-ns-seg-btn {
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 5px 10px !important;
+}
+
+.ag-ns-btn {
+  border-radius: 8px !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+}
+
+.ag-ns-btn.is-primary {
+  background: #C6613F !important;
+  border-color: #C6613F !important;
+  color: #FAF9F5 !important;
+}
+.ag-ns-btn.is-primary:hover {
+  background: #B45332 !important;
+  border-color: #B45332 !important;
+}
+
+.ag-ns-switch[aria-checked="true"] {
+  background: #C6613F !important;
+}
+
+.ag-ns-cand-chip.is-checked,
+.ag-ns-cand-chip[data-checked="true"] {
+  border-color: rgba(198, 97, 63, 0.42) !important;
+  background: rgba(198, 97, 63, 0.07) !important;
+}
 `;
   }
 
   function buildNativeSettingsPageHtml() {
     return `
-<section id="ag-ns-root" class="ag-ns-page" aria-label="Context Meter 设置">
+<section id="ag-ns-root" class="ag-ns-page" aria-label="Aether 设置">
   <header class="ag-ns-header">
     <div class="ag-ns-title-wrap">
-      <h1 id="ag-ns-title" class="ag-ns-title">Context Meter</h1>
-      <p id="ag-ns-subtitle" class="ag-ns-subtitle" data-i18n="hostSettings.subtitle">上下文统计、界面偏好、免 TUN 代理与本地数据配置</p>
+      <h1 id="ag-ns-title" class="ag-ns-title">Aether</h1>
+      <p id="ag-ns-subtitle" class="ag-ns-subtitle" data-i18n="hostSettings.subtitle">Aether 遥测看板、额度监控、账号管理与系统配置</p>
     </div>
     <div class="ag-ns-header-links">
       <button id="ag-hs-btn-open-accounts" class="ag-ns-btn" type="button" data-ag-ns-action="openAccountsTab" data-i18n="tab.accounts">账号与共享池</button>
@@ -55471,6 +56339,14 @@ const {
       <button id="ag-hs-btn-open-tokens" class="ag-ns-btn" type="button" data-ag-ns-action="openTokensBoard" data-i18n="hostSettings.btn.tokens">Token 用量</button>
     </div>
   </header>
+
+  <nav id="ag-ns-cat-bar" class="ag-ns-cat-bar" role="tablist" aria-label="设置分类">
+    <button type="button" class="ag-ns-cat-btn is-active" role="tab" aria-selected="true" data-ag-ns-cat="all">全部</button>
+    <button type="button" class="ag-ns-cat-btn" role="tab" aria-selected="false" data-ag-ns-cat="ui">外观与交互</button>
+    <button type="button" class="ag-ns-cat-btn" role="tab" aria-selected="false" data-ag-ns-cat="accounts">账号与费用</button>
+    <button type="button" class="ag-ns-cat-btn" role="tab" aria-selected="false" data-ag-ns-cat="enhance">增强与语言</button>
+    <button type="button" class="ag-ns-cat-btn" role="tab" aria-selected="false" data-ag-ns-cat="system">网络与系统</button>
+  </nav>
 
   <!-- 1. 外观、停靠位置与顶栏偏好 -->
   <div id="ag-ns-sec-appearance" class="ag-ns-group" data-section-id="ui-slim-prefs-card">
@@ -56048,7 +56924,7 @@ const {
         </div>
       </div>
 
-      <div class="ag-ns-row">
+      <div class="ag-ns-row" hidden>
         <div class="ag-ns-row-text">
           <div class="ag-ns-row-title" data-i18n="hostSettings.beta.label">接收预发布测试版本</div>
           <div class="ag-ns-row-desc" data-i18n="hostSettings.beta.desc">开启后检查更新可获取 Beta 通道版本</div>
@@ -56504,6 +57380,40 @@ const {
     if (container.dataset) container.dataset.agNsBound = '1';
 
     var cbs = callbacks || {};
+
+    // Aether 5-category sticky tab filter (preserves all sections & scroll-to-section)
+    var catBar = byId(root, 'ag-ns-cat-bar');
+    if (catBar) {
+      var CAT_GROUPS = {
+        ui: ['ag-ns-sec-appearance', 'ag-ns-sec-interaction'],
+        accounts: ['ag-ns-sec-accounts', 'ag-ns-sec-billing'],
+        enhance: ['ag-ns-sec-i18n', 'ag-ns-sec-enhance'],
+        system: ['ag-ns-sec-proxy', 'ag-ns-sec-update', 'ag-ns-sec-data']
+      };
+      var applyCatFilter = function (cat) {
+        var btns = catBar.querySelectorAll('.ag-ns-cat-btn');
+        for (var bi = 0; bi < btns.length; bi++) {
+          var isAct = btns[bi].getAttribute('data-ag-ns-cat') === cat;
+          btns[bi].classList.toggle('is-active', isAct);
+          btns[bi].setAttribute('aria-selected', isAct ? 'true' : 'false');
+        }
+        var allowed = cat === 'all' ? null : (CAT_GROUPS[cat] || null);
+        var groups = container.querySelectorAll('.ag-ns-group');
+        for (var gi = 0; gi < groups.length; gi++) {
+          var g = groups[gi];
+          var show = !allowed || allowed.indexOf(g.id) !== -1;
+          g.classList.toggle('is-cat-hidden', !show);
+        }
+        if (typeof container.scrollTo === 'function') {
+          try { container.scrollTo({ top: 0, behavior: 'smooth' }); } catch { container.scrollTop = 0; }
+        }
+      };
+      catBar.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest ? e.target.closest('.ag-ns-cat-btn') : null;
+        if (!btn || !catBar.contains(btn)) return;
+        applyCatFilter(btn.getAttribute('data-ag-ns-cat') || 'all');
+      });
+    }
 
     var segGroups = container.querySelectorAll ? container.querySelectorAll('[data-ag-ns-seg]') : [];
     for (var i = 0; i < segGroups.length; i++) {
@@ -57584,11 +58494,11 @@ function createHostSettingsController(deps = {}) {
       .trim();
     btn.className = baseClass ? `${baseClass} ag-cm-host-nav-item` : 'ag-cm-host-nav-item';
     btn.innerHTML = `
-      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="pointer-events:none;flex-shrink:0">
-        <circle cx="8" cy="8" r="6"></circle>
-        <path d="M8 8l3-2.5"></path>
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="pointer-events:none;flex-shrink:0">
+        <circle cx="8" cy="8" r="5.5" stroke-dasharray="2.4 2.2"></circle>
+        <circle cx="8" cy="8" r="1.8" fill="currentColor" stroke="none"></circle>
       </svg>
-      <span class="ag-hs-nav-label" style="pointer-events:none">Context Meter</span>
+      <span class="ag-hs-nav-label" style="pointer-events:none">Aether</span>
     `;
     return bindNavButtonEvents(btn);
   }
@@ -68138,6 +69048,98 @@ function initCrossSessionInsightsControls() {
         }
       }
     }
+    // Aether 双圆环（5h + 7d 始终共存）+ 各自 1d2h3min 下次刷新倒计时
+    const q5hLbl = el('quota-badge-5h-lbl');
+    const q5hReset = el('quota-badge-5h-reset');
+    const q7dWrap = el('quota-ring-7d-wrap');
+    const q7dFill = el('quota-ring-7d-fill');
+    const q7dVal = el('quota-badge-7d-val');
+    const q7dReset = el('quota-badge-7d-reset');
+    const qResetEl = el('quota-badge-reset');
+    const poolBuckets = Array.isArray(matchedPoolObjTop?.buckets) ? matchedPoolObjTop.buckets : [];
+    const bucket5h = poolBuckets.find(b => /5h|5\s*小时|short/i.test(String(b?.windowShort || b?.windowKey || ''))) || null;
+    const bucket7d = poolBuckets.find(b => /7d|week|周|週/i.test(String(b?.windowShort || b?.windowKey || ''))) || null;
+
+    const formatAetherReset = (resetAtMs) => {
+      if (!Number.isFinite(Number(resetAtMs)) || resetAtMs <= nowMs) return '';
+      const totalMin = Math.max(1, Math.round((resetAtMs - nowMs) / 60000));
+      const d = Math.floor(totalMin / 1440);
+      const h = Math.floor((totalMin % 1440) / 60);
+      const m = totalMin % 60;
+      let out = '';
+      if (d > 0) out += `${d}d`;
+      if (h > 0) out += `${h}h`;
+      if (m > 0 || !out) out += `${m}min`;
+      return out;
+    };
+
+    const resolveBucketFrac = (b) => {
+      if (!b) return null;
+      if (Number.isFinite(Number(b.remainingFraction))) return Math.max(0, Math.min(1, Number(b.remainingFraction)));
+      if (Number.isFinite(Number(b.fraction))) return Math.max(0, Math.min(1, Number(b.fraction)));
+      if (typeof b.percentText === 'string') {
+        const parsed = parseFloat(b.percentText);
+        if (Number.isFinite(parsed)) return Math.max(0, Math.min(1, parsed / 100));
+      }
+      return null;
+    };
+
+    if (bucket5h && bucket7d && q7dWrap && q7dFill && q7dVal) {
+      // 主圆环固定显示 5h 额度，保留纯百分比文案以兼容全部断言
+      const f5 = resolveBucketFrac(bucket5h);
+      if (qFill && f5 != null) {
+        setQuotaAttrIfChanged(qFill, 'stroke-dasharray', `${RING_CIRCUMFERENCE.toFixed(2)} ${RING_CIRCUMFERENCE.toFixed(2)}`);
+        setQuotaAttrIfChanged(qFill, 'stroke-dashoffset', (RING_CIRCUMFERENCE * (1 - f5)).toFixed(2));
+      }
+      if (q5hLbl) setQuotaHiddenIfChanged(q5hLbl, false);
+      if (qDual) setQuotaHiddenIfChanged(qDual, true);
+      if (qTag) setQuotaHiddenIfChanged(qTag, true);
+      if (qVal && bucket5h.percentText) {
+        setQuotaHiddenIfChanged(qVal, false);
+        setQuotaTextIfChanged(qVal, bucket5h.percentText);
+      }
+      const r5 = bucket5h.hasResetTime ? formatAetherReset(bucket5h.resetAtMs) : '';
+      if (q5hReset) {
+        if (r5) {
+          setQuotaTextIfChanged(q5hReset, r5);
+          setQuotaHiddenIfChanged(q5hReset, false);
+        } else {
+          setQuotaHiddenIfChanged(q5hReset, true);
+        }
+      }
+      // 副圆环固定显示 7d 额度 + 7d 刷新倒计时
+      const f7 = resolveBucketFrac(bucket7d) ?? 0;
+      setQuotaAttrIfChanged(q7dFill, 'stroke-dasharray', `${RING_CIRCUMFERENCE.toFixed(2)} ${RING_CIRCUMFERENCE.toFixed(2)}`);
+      setQuotaAttrIfChanged(q7dFill, 'stroke-dashoffset', (RING_CIRCUMFERENCE * (1 - f7)).toFixed(2));
+      setQuotaTextIfChanged(q7dVal, bucket7d.percentText || '--');
+      const r7 = bucket7d.hasResetTime ? formatAetherReset(bucket7d.resetAtMs) : '';
+      if (q7dReset) {
+        if (r7) {
+          setQuotaTextIfChanged(q7dReset, r7);
+          setQuotaHiddenIfChanged(q7dReset, false);
+        } else {
+          setQuotaHiddenIfChanged(q7dReset, true);
+        }
+      }
+      setQuotaHiddenIfChanged(q7dWrap, false);
+      if (qResetEl) setQuotaHiddenIfChanged(qResetEl, true);
+    } else {
+      if (q5hLbl) setQuotaHiddenIfChanged(q5hLbl, true);
+      if (q5hReset) setQuotaHiddenIfChanged(q5hReset, true);
+      if (q7dWrap) setQuotaHiddenIfChanged(q7dWrap, true);
+      if (q7dReset) setQuotaHiddenIfChanged(q7dReset, true);
+      if (qResetEl) {
+        const singleResetMs = view.activeReset?.hasResetTime ? view.activeReset.resetAtMs : null;
+        const singleStr = singleResetMs ? formatAetherReset(singleResetMs) : '';
+        if (singleStr) {
+          setQuotaTextIfChanged(qResetEl, singleStr);
+          setQuotaHiddenIfChanged(qResetEl, false);
+        } else {
+          setQuotaHiddenIfChanged(qResetEl, true);
+        }
+      }
+    }
+
     if (oQuotaVal) {
       const dispTxt = useDualDisplay
         ? view.badge.dualBuckets.map(b => b.text).join(' / ')
@@ -71301,7 +72303,7 @@ if (typeof dismissNextPromptSuggestion === 'function') dismissNextPromptSuggesti
   }
 
   globalThis.__AGContextMeter = {
-    buildId: '93d3ca32f89b02c7',
+    buildId: '44a35d8408f4f658',
     version: METER_RENDERER_VERSION,
     ensureAlive: () => {
       if (state.disposed) return false;

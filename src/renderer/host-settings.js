@@ -670,11 +670,11 @@ function createHostSettingsController(deps = {}) {
       .trim();
     btn.className = baseClass ? `${baseClass} ag-cm-host-nav-item` : 'ag-cm-host-nav-item';
     btn.innerHTML = `
-      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="pointer-events:none;flex-shrink:0">
-        <circle cx="8" cy="8" r="6"></circle>
-        <path d="M8 8l3-2.5"></path>
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="pointer-events:none;flex-shrink:0">
+        <circle cx="8" cy="8" r="5.5" stroke-dasharray="2.4 2.2"></circle>
+        <circle cx="8" cy="8" r="1.8" fill="currentColor" stroke="none"></circle>
       </svg>
-      <span class="ag-hs-nav-label" style="pointer-events:none">Context Meter</span>
+      <span class="ag-hs-nav-label" style="pointer-events:none">Aether</span>
     `;
     return bindNavButtonEvents(btn);
   }

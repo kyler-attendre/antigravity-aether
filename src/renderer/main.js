@@ -300,8 +300,8 @@
   let quotaBadgeWindowMode = (() => {
     try {
       const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('ag_quota_badge_window_mode') : null;
-      return VALID_QUOTA_WINDOW_MODES.includes(saved) ? saved : 'auto';
-    } catch { return 'auto'; }
+      return VALID_QUOTA_WINDOW_MODES.includes(saved) ? saved : 'both';
+    } catch { return 'both'; }
   })();
   // 旧 4 选 1 单选仅作为迁移输入保留，运行期真实状态由 3 个独立布尔开关承载
   let legacyQuickMenuStyle = (() => {
@@ -3793,9 +3793,10 @@
         if (isPickerMenu) panelEl.setAttribute?.('data-placement', openAbove ? 'top' : 'bottom');
       };
 
-      placePanel(el('panel'), 472, el(activeContextAnchorId) || el('badge'));
-      placePanel(el('panel-quota'), 460, el(activeQuotaAnchorId) || el('badge-quota'));
-      placePanel(el('panel-tokens'), 730, el(activeTokensAnchorId) || el('badge-tokens'));
+      const UNIFIED_HUB_W = 640;
+      placePanel(el('panel'), UNIFIED_HUB_W, host);
+      placePanel(el('panel-quota'), UNIFIED_HUB_W, host);
+      placePanel(el('panel-tokens'), UNIFIED_HUB_W, host);
       placePanel(el('overflow-menu'), 220, el(activePickerAnchorId || 'badge-overflow') || el('badge-overflow'));
       positionColorPickerPopover();
       if (typeof syncContextPanelContainerWidthTier === 'function') syncContextPanelContainerWidthTier();
@@ -4201,6 +4202,11 @@
       });
       return;
     }
+    if (typeof syncAetherHubActive === 'function') {
+      if (target === 'quota') syncAetherHubActive('quota');
+      else if (target === 'tokens') syncAetherHubActive('tokens');
+      else if (target === 'context') syncAetherHubActive(activeContextTab === 'accounts' ? 'accounts' : 'context');
+    }
     // PR #83：切页或收起额度看板时立即取消待恢复任务，与 #81 切页滚动记忆互不干扰
     if (target !== 'quota' && typeof cancelQuotaScrollRestore === 'function') {
       cancelQuotaScrollRestore();
@@ -4592,6 +4598,7 @@
     } else {
       activeQuotaAnchorId = anchorId || 'badge-quota';
       showPanel('quota');
+      if (typeof refreshAccountsOverview === 'function') void refreshAccountsOverview({ silent: true });
     }
   }
 
@@ -9038,12 +9045,8 @@
   }
 
   el('badge-quota')?.addEventListener('click', e => {
-    if (e?.altKey || e?.detail === 0) {
-      e?.preventDefault?.();
-      toggleQuota('badge-quota');
-      return;
-    }
-    cycleQuotaBadgeWindowMode();
+    e?.preventDefault?.();
+    toggleQuota('badge-quota');
   });
   let badgeLongPressTimer = null;
   let badgeLongPressTriggered = false;
@@ -9068,6 +9071,105 @@
   el('badge-speed')?.addEventListener('click', () => toggleContext('badge-speed'));
   el('badge-tokens').addEventListener('click', () => toggleTokens('badge-tokens'));
   el('badge-overflow')?.addEventListener('click', toggleOverflowMenu);
+
+  // Aether Unified Cockpit Hub Bar: single seamless navigation across Quota / Context / Tokens / Accounts / Settings
+  function syncAetherHubActive(activeKey) {
+    const bars = shadow.querySelectorAll?.('.aether-hub-bar') || [];
+    for (const bar of bars) {
+      const tabs = bar.querySelectorAll?.('.aether-hub-tab') || [];
+      for (const tab of tabs) {
+        const isAct = tab.getAttribute('data-aether-hub') === activeKey;
+        tab.classList.toggle('is-active', isAct);
+        tab.setAttribute('aria-selected', isAct ? 'true' : 'false');
+      }
+    }
+  }
+  for (const hubBar of Array.from(shadow.querySelectorAll?.('.aether-hub-bar') || [])) {
+    hubBar.addEventListener('click', (e) => {
+      const btn = e.target?.closest?.('[data-aether-hub]');
+      if (!btn) return;
+      const target = btn.getAttribute('data-aether-hub');
+      if (target === 'quota') {
+        showPanel('quota');
+        syncAetherHubActive('quota');
+        if (typeof refreshAccountsOverview === 'function') void refreshAccountsOverview({ silent: true });
+      } else if (target === 'context') {
+        showPanel('context');
+        if (activeContextTab === 'accounts' || activeContextTab === 'settings') switchContextTab('session');
+        syncAetherHubActive('context');
+      } else if (target === 'tokens') {
+        showPanel('tokens');
+        syncAetherHubActive('tokens');
+      } else if (target === 'settings') {
+        openContextSettings();
+      } else if (target === 'refresh-quota') {
+        void syncQuotaFromHost(true, { manual: true });
+        if (typeof refreshAccountsOverview === 'function') void refreshAccountsOverview({ silent: true });
+      } else if (target === 'dock-right') {
+        void openDashboardInRightPanel();
+      } else if (target === 'toggle-theme') {
+        el('theme-toggle')?.click?.();
+      } else if (target === 'toggle-lang') {
+        const nextLang = currentPanelLanguage === 'en' ? 'zh-CN' : 'en';
+        el(`btn-top-lang-${nextLang}`)?.click?.();
+      } else if (target === 'close') {
+        showPanel('none');
+      }
+    });
+  }
+
+  // Aether 会话页精简双模式：默认「总览」（3核心卡），点击「深度排障」展开全部 11 个 Bento 排障组件
+  function setAetherSessionMode(mode) {
+    const nextMode = mode === 'debug' ? 'debug' : 'overview';
+    const pane = el('pane-ctx-session');
+    if (pane) pane.setAttribute('data-aether-session-mode', nextMode);
+    const btnOverview = el('tab-ctx-session');
+    const btnDebug = el('tab-ctx-debug');
+    if (activeContextTab === 'session') {
+      if (btnOverview) {
+        btnOverview.classList.toggle('active', nextMode === 'overview');
+        btnOverview.setAttribute('aria-selected', nextMode === 'overview' ? 'true' : 'false');
+      }
+      if (btnDebug) {
+        btnDebug.classList.toggle('active', nextMode === 'debug');
+        btnDebug.setAttribute('aria-selected', nextMode === 'debug' ? 'true' : 'false');
+      }
+    }
+  }
+  el('tab-ctx-session')?.addEventListener('click', () => {
+    setAetherSessionMode('overview');
+  });
+  el('tab-ctx-debug')?.addEventListener('click', () => {
+    switchContextTab('session');
+    setAetherSessionMode('debug');
+  });
+  el('tab-ctx-speed')?.addEventListener('click', () => {
+    const btnDebug = el('tab-ctx-debug');
+    if (btnDebug) { btnDebug.classList.remove('active'); btnDebug.setAttribute('aria-selected', 'false'); }
+  });
+  el('tab-ctx-models')?.addEventListener('click', () => {
+    const btnDebug = el('tab-ctx-debug');
+    if (btnDebug) { btnDebug.classList.remove('active'); btnDebug.setAttribute('aria-selected', 'false'); }
+  });
+
+  // Linear/Raycast keyboard ergonomics: 1/2/3 switch 3 Hub tabs (额度 / 会话 / 用量) when open
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('keydown', (e) => {
+      if (state.disposed || !isAnyPanelOpen()) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const active = (shadow.activeElement || document.activeElement);
+      const tag = String(active?.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || active?.isContentEditable) return;
+      if (e.key === '1') {
+        e.preventDefault?.();
+        showPanel('quota');
+        syncAetherHubActive('quota');
+        if (typeof refreshAccountsOverview === 'function') void refreshAccountsOverview({ silent: true });
+      }
+      else if (e.key === '2') { e.preventDefault?.(); showPanel('context'); if (activeContextTab === 'accounts' || activeContextTab === 'settings') switchContextTab('session'); syncAetherHubActive('context'); }
+      else if (e.key === '3') { e.preventDefault?.(); showPanel('tokens'); syncAetherHubActive('tokens'); }
+    });
+  }
 
   // 紧凑面板切换选择器事件：点击切换当前面板不关闭右栏/重置会话；键盘方向键可导航
   el('overflow-quota-btn')?.addEventListener('click', () => switchPanelFromPicker('quota'));
@@ -11650,15 +11752,22 @@
   };
 
   function openPluginAccountsTab(showOpts = {}) {
-    showPanel('context', showOpts);
-    switchContextTab('accounts');
+    showPanel('quota', showOpts);
+    if (typeof syncAetherHubActive === 'function') syncAetherHubActive('quota');
     if (typeof refreshAccountsOverview === 'function') void refreshAccountsOverview({ silent: true });
     if (typeof renderQuotaBoard === 'function') renderQuotaBoard(Date.now(), { animate: false });
+    const acctSec = el('ctx-accounts-switch-section');
+    if (acctSec && typeof acctSec.scrollIntoView === 'function') {
+      setTimeout(() => { try { acctSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch { } }, 60);
+    }
   }
 
   function switchContextTab(tabName) {
     const normTab = tabName === 'settings' ? 'settings' : tabName;
     if (normTab !== 'session' && normTab !== 'models' && normTab !== 'speed' && normTab !== 'accounts' && normTab !== 'settings') return;
+    if (typeof syncAetherHubActive === 'function') {
+      syncAetherHubActive(normTab === 'accounts' ? 'accounts' : 'context');
+    }
     if (normTab !== 'session') closeCockpitWidgetManager();
     if (activeContextTab !== 'settings' && normTab === 'settings') {
       prevTabBeforeSettings = activeContextTab;
@@ -19935,7 +20044,7 @@ speedPkSelection = speedPkSelection.filter(v => v !== id);
         }
         if (preserveSessionView && (panelDockMode === 'page' || dockPosition === 'page')) {
           syncDockPositionUi();
-        } else if (!savedPanelDockMode && normalizedSavedDock && VALID_DOCK_POSITIONS.includes(normalizedSavedDock) && normalizedSavedDock !== dockPosition) {
+        } else if (!savedTopbarMode && !savedPanelDockMode && normalizedSavedDock && VALID_DOCK_POSITIONS.includes(normalizedSavedDock) && normalizedSavedDock !== dockPosition) {
           setDockPosition(normalizedSavedDock, { persist: false });
         } else {
           syncDockPositionUi();
@@ -20169,7 +20278,7 @@ speedPkSelection = speedPkSelection.filter(v => v !== id);
   }
 
   function openGithubRepo(pathSuffix = '') {
-    const url = 'https://github.com/elviscjn-cjn/antigravity-context-viewer' + pathSuffix;
+    const url = 'https://github.com/kyler-attendre/antigravity-aether' + pathSuffix;
     if (typeof window !== 'undefined' && typeof window.contextMeterAPI?.openExternal === 'function') {
       window.contextMeterAPI.openExternal(url);
     } else {
@@ -28207,6 +28316,98 @@ speedPkSelection = speedPkSelection.filter(v => v !== id);
         }
       }
     }
+    // Aether 双圆环（5h + 7d 始终共存）+ 各自 1d2h3min 下次刷新倒计时
+    const q5hLbl = el('quota-badge-5h-lbl');
+    const q5hReset = el('quota-badge-5h-reset');
+    const q7dWrap = el('quota-ring-7d-wrap');
+    const q7dFill = el('quota-ring-7d-fill');
+    const q7dVal = el('quota-badge-7d-val');
+    const q7dReset = el('quota-badge-7d-reset');
+    const qResetEl = el('quota-badge-reset');
+    const poolBuckets = Array.isArray(matchedPoolObjTop?.buckets) ? matchedPoolObjTop.buckets : [];
+    const bucket5h = poolBuckets.find(b => /5h|5\s*小时|short/i.test(String(b?.windowShort || b?.windowKey || ''))) || null;
+    const bucket7d = poolBuckets.find(b => /7d|week|周|週/i.test(String(b?.windowShort || b?.windowKey || ''))) || null;
+
+    const formatAetherReset = (resetAtMs) => {
+      if (!Number.isFinite(Number(resetAtMs)) || resetAtMs <= nowMs) return '';
+      const totalMin = Math.max(1, Math.round((resetAtMs - nowMs) / 60000));
+      const d = Math.floor(totalMin / 1440);
+      const h = Math.floor((totalMin % 1440) / 60);
+      const m = totalMin % 60;
+      let out = '';
+      if (d > 0) out += `${d}d`;
+      if (h > 0) out += `${h}h`;
+      if (m > 0 || !out) out += `${m}min`;
+      return out;
+    };
+
+    const resolveBucketFrac = (b) => {
+      if (!b) return null;
+      if (Number.isFinite(Number(b.remainingFraction))) return Math.max(0, Math.min(1, Number(b.remainingFraction)));
+      if (Number.isFinite(Number(b.fraction))) return Math.max(0, Math.min(1, Number(b.fraction)));
+      if (typeof b.percentText === 'string') {
+        const parsed = parseFloat(b.percentText);
+        if (Number.isFinite(parsed)) return Math.max(0, Math.min(1, parsed / 100));
+      }
+      return null;
+    };
+
+    if (bucket5h && bucket7d && q7dWrap && q7dFill && q7dVal) {
+      // 主圆环固定显示 5h 额度，保留纯百分比文案以兼容全部断言
+      const f5 = resolveBucketFrac(bucket5h);
+      if (qFill && f5 != null) {
+        setQuotaAttrIfChanged(qFill, 'stroke-dasharray', `${RING_CIRCUMFERENCE.toFixed(2)} ${RING_CIRCUMFERENCE.toFixed(2)}`);
+        setQuotaAttrIfChanged(qFill, 'stroke-dashoffset', (RING_CIRCUMFERENCE * (1 - f5)).toFixed(2));
+      }
+      if (q5hLbl) setQuotaHiddenIfChanged(q5hLbl, false);
+      if (qDual) setQuotaHiddenIfChanged(qDual, true);
+      if (qTag) setQuotaHiddenIfChanged(qTag, true);
+      if (qVal && bucket5h.percentText) {
+        setQuotaHiddenIfChanged(qVal, false);
+        setQuotaTextIfChanged(qVal, bucket5h.percentText);
+      }
+      const r5 = bucket5h.hasResetTime ? formatAetherReset(bucket5h.resetAtMs) : '';
+      if (q5hReset) {
+        if (r5) {
+          setQuotaTextIfChanged(q5hReset, r5);
+          setQuotaHiddenIfChanged(q5hReset, false);
+        } else {
+          setQuotaHiddenIfChanged(q5hReset, true);
+        }
+      }
+      // 副圆环固定显示 7d 额度 + 7d 刷新倒计时
+      const f7 = resolveBucketFrac(bucket7d) ?? 0;
+      setQuotaAttrIfChanged(q7dFill, 'stroke-dasharray', `${RING_CIRCUMFERENCE.toFixed(2)} ${RING_CIRCUMFERENCE.toFixed(2)}`);
+      setQuotaAttrIfChanged(q7dFill, 'stroke-dashoffset', (RING_CIRCUMFERENCE * (1 - f7)).toFixed(2));
+      setQuotaTextIfChanged(q7dVal, bucket7d.percentText || '--');
+      const r7 = bucket7d.hasResetTime ? formatAetherReset(bucket7d.resetAtMs) : '';
+      if (q7dReset) {
+        if (r7) {
+          setQuotaTextIfChanged(q7dReset, r7);
+          setQuotaHiddenIfChanged(q7dReset, false);
+        } else {
+          setQuotaHiddenIfChanged(q7dReset, true);
+        }
+      }
+      setQuotaHiddenIfChanged(q7dWrap, false);
+      if (qResetEl) setQuotaHiddenIfChanged(qResetEl, true);
+    } else {
+      if (q5hLbl) setQuotaHiddenIfChanged(q5hLbl, true);
+      if (q5hReset) setQuotaHiddenIfChanged(q5hReset, true);
+      if (q7dWrap) setQuotaHiddenIfChanged(q7dWrap, true);
+      if (q7dReset) setQuotaHiddenIfChanged(q7dReset, true);
+      if (qResetEl) {
+        const singleResetMs = view.activeReset?.hasResetTime ? view.activeReset.resetAtMs : null;
+        const singleStr = singleResetMs ? formatAetherReset(singleResetMs) : '';
+        if (singleStr) {
+          setQuotaTextIfChanged(qResetEl, singleStr);
+          setQuotaHiddenIfChanged(qResetEl, false);
+        } else {
+          setQuotaHiddenIfChanged(qResetEl, true);
+        }
+      }
+    }
+
     if (oQuotaVal) {
       const dispTxt = useDualDisplay
         ? view.badge.dualBuckets.map(b => b.text).join(' / ')

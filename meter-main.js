@@ -1199,6 +1199,87 @@ function registerMeterIpcHandlers(ipcMain) {
 
   ipcMain.handle('context-meter:restart-host', handleRestartHost);
 
+  ipcMain.handle('aether:check-host-update', async (event) => {
+    const url = isLocalMainFrameSender(event);
+    if (!url) throw new Error('仅允许本机主聊天窗口');
+    if (process.platform !== 'darwin') {
+      return { ok: false, error: '当前一键官方升级仅支持 macOS' };
+    }
+    try {
+      const arch = process.arch === 'arm64' ? 'arm64' : 'x64';
+      const manifestUrl = `https://antigravity-hub-auto-updater-974169037036.us-central1.run.app/manifest/latest-${arch}-mac.yml?noCache=${Date.now()}`;
+      const resp = await fetch(manifestUrl);
+      if (!resp.ok) return { ok: false, error: `HTTP ${resp.status}` };
+      const yml = await resp.text();
+      const latestVersion = (yml.match(/^version:\s*([^\s]+)/m) || [])[1] || '';
+      const localVersion = typeof app?.getVersion === 'function' ? app.getVersion() : 'unknown';
+      if (!latestVersion) return { ok: false, error: '无法解析官方版本清单' };
+      return {
+        ok: true,
+        localVersion,
+        latestVersion,
+        hasUpdate: localVersion !== latestVersion
+      };
+    } catch (e) {
+      return { ok: false, error: e.message || String(e) };
+    }
+  });
+
+  ipcMain.handle('aether:run-host-upgrade', async (event) => {
+    const url = isLocalMainFrameSender(event);
+    if (!url) throw new Error('仅允许本机主聊天窗口');
+    if (process.platform !== 'darwin') {
+      return { ok: false, error: '当前一键官方升级仅支持 macOS' };
+    }
+    try {
+      const { getStateDir } = require('./asar-engine');
+      const pathsFile = path.join(getStateDir(), 'aether-paths.json');
+      if (!fs.existsSync(pathsFile)) {
+        return { ok: false, error: '未找到 Aether 升级脚本路径，请先重新运行 install-mac.sh' };
+      }
+      const meta = JSON.parse(fs.readFileSync(pathsFile, 'utf8'));
+      const upgradeScript = meta?.upgradeScript;
+      if (!upgradeScript || !fs.existsSync(upgradeScript)) {
+        return { ok: false, error: '找不到 upgrade-mac.sh: ' + (upgradeScript || '') };
+      }
+      const { dialog } = require('electron');
+      const res = await dialog.showMessageBox({
+        type: 'question',
+        buttons: ['立即升级并重装 Aether', '取消'],
+        defaultId: 0,
+        cancelId: 1,
+        message: '一键升级 Antigravity 并重装 Aether',
+        detail: '将自动退出 Antigravity，在终端下载 Google 官方最新版本、校验 SHA-512、替换应用并重新内置全套 Aether 后自动打开。'
+      });
+      if (res.response !== 0) {
+        return { ok: false, cancelled: true };
+      }
+      const runnerPath = path.join(os.tmpdir(), 'aether-upgrade-runner.command');
+      const runnerBody = [
+        '#!/usr/bin/env bash',
+        'set -e',
+        'echo "⏳ 等待 Antigravity 完全退出..."',
+        'for i in $(seq 1 30); do',
+        '  if ! pgrep -f "/Applications/Antigravity.app/Contents/MacOS/Antigravity" >/dev/null 2>&1; then break; fi',
+        '  sleep 0.5',
+        'done',
+        `"${upgradeScript}"`,
+        'echo ""',
+        'echo "🎉 升级与 Aether 重装已完成，此终端窗口可关闭。"'
+      ].join('\n') + '\n';
+      fs.writeFileSync(runnerPath, runnerBody, { mode: 0o755 });
+      const { spawn } = require('child_process');
+      const child = spawn('open', ['-a', 'Terminal', runnerPath], { detached: true, stdio: 'ignore' });
+      child.unref();
+      setTimeout(() => {
+        try { app?.quit?.(); } catch { }
+      }, 350);
+      return { ok: true, launched: true };
+    } catch (e) {
+      return { ok: false, error: e.message || String(e) };
+    }
+  });
+
   if (typeof ipcMain.on === 'function') {
     ipcMain.on('context-meter:get-chinese-config-sync', (event) => {
       const url = isLocalMainFrameSender(event);
@@ -1795,14 +1876,35 @@ try {
     };
     app.on('browser-window-created', handleCreated);
     app.on('base-window-created', handleCreated);
+    const restoreAndInjectWindows = (wins) => {
+      const targetWins = Array.isArray(wins) ? [...wins] : [];
+      if (targetWins.length === 0) {
+        try {
+          const { BrowserWindow, BaseWindow } = require('electron');
+          if (typeof BrowserWindow?.getAllWindows === 'function') targetWins.push(...BrowserWindow.getAllWindows());
+          if (typeof BaseWindow?.getAllWindows === 'function') {
+            for (const bw of BaseWindow.getAllWindows()) {
+              if (!targetWins.includes(bw)) targetWins.push(bw);
+            }
+          }
+        } catch { }
+      }
+      for (const w of targetWins) {
+        if (!w || w.isDestroyed?.()) continue;
+        try {
+          if (typeof w.isMinimized === 'function' && w.isMinimized()) w.restore?.();
+          if (typeof w.isVisible === 'function' && !w.isVisible()) w.show?.();
+          if (typeof w.focus === 'function') w.focus();
+        } catch { }
+        exports.installContextMeter(w);
+        void ensureMeterInjected(w, { force: true });
+      }
+    };
     app.on('activate', () => {
       try {
         const utils = require('./utils');
         const wins = typeof utils.getHubWindows === 'function' ? utils.getHubWindows() : [];
-        for (const w of wins) {
-          exports.installContextMeter(w);
-          void ensureMeterInjected(w, { force: true });
-        }
+        restoreAndInjectWindows(wins);
       } catch { }
     });
     app.on('second-instance', () => {
@@ -1811,10 +1913,7 @@ try {
         setTimeout(() => {
           try {
             const wins = typeof utils.getHubWindows === 'function' ? utils.getHubWindows() : [];
-            for (const w of wins) {
-              exports.installContextMeter(w);
-              void ensureMeterInjected(w, { force: true });
-            }
+            restoreAndInjectWindows(wins);
           } catch { }
         }, 120);
       } catch { }

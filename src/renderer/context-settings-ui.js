@@ -1090,16 +1090,195 @@ const {
     grid-template-columns: 1fr;
   }
 }
+
+/* =====================================================================
+   Aether Editorial Settings Refactor
+   - Sticky 5-category navigation bar (zero features removed)
+   - Harmonized Claude Clay light/dark card hierarchy, typography & spacing
+   ===================================================================== */
+.ag-ns-page {
+  padding: 20px 26px 40px 26px !important;
+  gap: 0 !important;
+}
+
+.ag-ns-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding-bottom: 14px !important;
+  margin-bottom: 12px !important;
+  border-bottom: 1px solid var(--ns-border, rgba(128, 128, 128, 0.14)) !important;
+}
+
+.ag-ns-title {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.25 !important;
+  margin: 0 0 4px 0 !important;
+}
+
+.ag-ns-title-wrap {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+.ag-ns-subtitle {
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+  opacity: 0.70 !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.ag-ns-header-links {
+  display: inline-flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex-shrink: 0 !important;
+  padding-top: 2px;
+}
+
+.ag-ns-header-links .ag-ns-btn {
+  height: 28px !important;
+  padding: 0 10px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border-radius: 7px !important;
+  white-space: nowrap !important;
+}
+
+.ag-ns-cat-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  margin: 0 0 18px 0;
+  border-radius: 10px;
+  background: var(--ns-seg-bg, rgba(128, 128, 128, 0.08));
+  border: 1px solid var(--ns-border, rgba(128, 128, 128, 0.12));
+  backdrop-filter: blur(10px);
+  overflow-x: auto;
+}
+
+.ag-ns-cat-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--ns-muted, inherit);
+  font: 500 12px/1 inherit;
+  padding: 7px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+.ag-ns-cat-btn:hover {
+  color: var(--ns-fg, inherit);
+  background: rgba(128, 128, 128, 0.08);
+}
+
+.ag-ns-cat-btn.is-active {
+  background: var(--ns-card-bg, #ffffff);
+  color: var(--ns-fg, inherit);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.09);
+}
+
+.ag-ns-group {
+  margin-bottom: 22px !important;
+}
+
+.ag-ns-group.is-cat-hidden {
+  display: none !important;
+}
+
+.ag-ns-group-title {
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  margin: 0 0 8px 2px !important;
+  opacity: 0.78 !important;
+}
+
+.ag-ns-card {
+  border-radius: 12px !important;
+  border-color: var(--ns-border, rgba(128, 128, 128, 0.14)) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.025) !important;
+}
+
+.ag-ns-row {
+  padding: 13px 16px !important;
+  gap: 16px !important;
+}
+
+.ag-ns-row-title {
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.005em !important;
+}
+
+.ag-ns-row-desc {
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+  opacity: 0.68 !important;
+  margin-top: 2px !important;
+}
+
+.ag-ns-seg {
+  border-radius: 8px !important;
+  padding: 2px !important;
+}
+
+.ag-ns-seg-btn {
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 5px 10px !important;
+}
+
+.ag-ns-btn {
+  border-radius: 8px !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+}
+
+.ag-ns-btn.is-primary {
+  background: #C6613F !important;
+  border-color: #C6613F !important;
+  color: #FAF9F5 !important;
+}
+.ag-ns-btn.is-primary:hover {
+  background: #B45332 !important;
+  border-color: #B45332 !important;
+}
+
+.ag-ns-switch[aria-checked="true"] {
+  background: #C6613F !important;
+}
+
+.ag-ns-cand-chip.is-checked,
+.ag-ns-cand-chip[data-checked="true"] {
+  border-color: rgba(198, 97, 63, 0.42) !important;
+  background: rgba(198, 97, 63, 0.07) !important;
+}
 `;
   }
 
   function buildNativeSettingsPageHtml() {
     return `
-<section id="ag-ns-root" class="ag-ns-page" aria-label="Context Meter 设置">
+<section id="ag-ns-root" class="ag-ns-page" aria-label="Aether 设置">
   <header class="ag-ns-header">
     <div class="ag-ns-title-wrap">
-      <h1 id="ag-ns-title" class="ag-ns-title">Context Meter</h1>
-      <p id="ag-ns-subtitle" class="ag-ns-subtitle" data-i18n="hostSettings.subtitle">上下文统计、界面偏好、免 TUN 代理与本地数据配置</p>
+      <h1 id="ag-ns-title" class="ag-ns-title">Aether</h1>
+      <p id="ag-ns-subtitle" class="ag-ns-subtitle" data-i18n="hostSettings.subtitle">Aether 遥测看板、额度监控、账号管理与系统配置</p>
     </div>
     <div class="ag-ns-header-links">
       <button id="ag-hs-btn-open-accounts" class="ag-ns-btn" type="button" data-ag-ns-action="openAccountsTab" data-i18n="tab.accounts">账号与共享池</button>
@@ -1107,6 +1286,14 @@ const {
       <button id="ag-hs-btn-open-tokens" class="ag-ns-btn" type="button" data-ag-ns-action="openTokensBoard" data-i18n="hostSettings.btn.tokens">Token 用量</button>
     </div>
   </header>
+
+  <nav id="ag-ns-cat-bar" class="ag-ns-cat-bar" role="tablist" aria-label="设置分类">
+    <button type="button" class="ag-ns-cat-btn is-active" role="tab" aria-selected="true" data-ag-ns-cat="all">全部</button>
+    <button type="button" class="ag-ns-cat-btn" role="tab" aria-selected="false" data-ag-ns-cat="ui">外观与交互</button>
+    <button type="button" class="ag-ns-cat-btn" role="tab" aria-selected="false" data-ag-ns-cat="accounts">账号与费用</button>
+    <button type="button" class="ag-ns-cat-btn" role="tab" aria-selected="false" data-ag-ns-cat="enhance">增强与语言</button>
+    <button type="button" class="ag-ns-cat-btn" role="tab" aria-selected="false" data-ag-ns-cat="system">网络与系统</button>
+  </nav>
 
   <!-- 1. 外观、停靠位置与顶栏偏好 -->
   <div id="ag-ns-sec-appearance" class="ag-ns-group" data-section-id="ui-slim-prefs-card">
@@ -1684,7 +1871,7 @@ const {
         </div>
       </div>
 
-      <div class="ag-ns-row">
+      <div class="ag-ns-row" hidden>
         <div class="ag-ns-row-text">
           <div class="ag-ns-row-title" data-i18n="hostSettings.beta.label">接收预发布测试版本</div>
           <div class="ag-ns-row-desc" data-i18n="hostSettings.beta.desc">开启后检查更新可获取 Beta 通道版本</div>
@@ -2140,6 +2327,40 @@ const {
     if (container.dataset) container.dataset.agNsBound = '1';
 
     var cbs = callbacks || {};
+
+    // Aether 5-category sticky tab filter (preserves all sections & scroll-to-section)
+    var catBar = byId(root, 'ag-ns-cat-bar');
+    if (catBar) {
+      var CAT_GROUPS = {
+        ui: ['ag-ns-sec-appearance', 'ag-ns-sec-interaction'],
+        accounts: ['ag-ns-sec-accounts', 'ag-ns-sec-billing'],
+        enhance: ['ag-ns-sec-i18n', 'ag-ns-sec-enhance'],
+        system: ['ag-ns-sec-proxy', 'ag-ns-sec-update', 'ag-ns-sec-data']
+      };
+      var applyCatFilter = function (cat) {
+        var btns = catBar.querySelectorAll('.ag-ns-cat-btn');
+        for (var bi = 0; bi < btns.length; bi++) {
+          var isAct = btns[bi].getAttribute('data-ag-ns-cat') === cat;
+          btns[bi].classList.toggle('is-active', isAct);
+          btns[bi].setAttribute('aria-selected', isAct ? 'true' : 'false');
+        }
+        var allowed = cat === 'all' ? null : (CAT_GROUPS[cat] || null);
+        var groups = container.querySelectorAll('.ag-ns-group');
+        for (var gi = 0; gi < groups.length; gi++) {
+          var g = groups[gi];
+          var show = !allowed || allowed.indexOf(g.id) !== -1;
+          g.classList.toggle('is-cat-hidden', !show);
+        }
+        if (typeof container.scrollTo === 'function') {
+          try { container.scrollTo({ top: 0, behavior: 'smooth' }); } catch { container.scrollTop = 0; }
+        }
+      };
+      catBar.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest ? e.target.closest('.ag-ns-cat-btn') : null;
+        if (!btn || !catBar.contains(btn)) return;
+        applyCatFilter(btn.getAttribute('data-ag-ns-cat') || 'all');
+      });
+    }
 
     var segGroups = container.querySelectorAll ? container.querySelectorAll('[data-ag-ns-seg]') : [];
     for (var i = 0; i < segGroups.length; i++) {

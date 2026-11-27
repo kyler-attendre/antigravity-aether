@@ -28381,8 +28381,19 @@ function resolveTheme() {
   return getSystemTheme();
 }
 
+function isAetherClayActive() {
+  try {
+    return typeof document !== 'undefined' && document.documentElement?.getAttribute?.('data-ag-style') === 'clay';
+  } catch { return false; }
+}
+
 function getPresetHeatmapScale() {
   const isLight = resolveTheme() === 'light';
+  if (isAetherClayActive() && (!heatPreset || heatPreset === 'purple')) {
+    return isLight
+      ? ['#EFECE6', '#F4D5C6', '#E8A587', '#D67B59', '#C6613F']
+      : ['#2C2A27', '#4B2E24', '#7B422E', '#B05A3C', '#D97757'];
+  }
   const presetObj = HEAT_PRESETS[heatPreset] || HEAT_PRESETS.purple;
   return (isLight ? presetObj.light : presetObj.dark).slice();
 }
@@ -28424,8 +28435,8 @@ function getDefaultSlotColor(slotKey) {
     case 'ringTrack': return isLight ? '#b8b8c2' : '#52525b';
     case 'contextText': return isLight ? '#18181b' : '#ececef';
     case 'speedText': return isLight ? '#0284c7' : '#38bdf8';
-    case 'tokenTotal': return isLight ? '#7c3aed' : '#c084fc';
-    case 'tokenAccent': return isLight ? '#7c3aed' : '#a78bfa';
+    case 'tokenTotal': return isAetherClayActive() ? (isLight ? '#C6613F' : '#E89A7E') : (isLight ? '#7c3aed' : '#c084fc');
+    case 'tokenAccent': return isAetherClayActive() ? (isLight ? '#C6613F' : '#D97757') : (isLight ? '#7c3aed' : '#a78bfa');
     case 'heatLow': return presetScale[0];
     case 'heatHigh': return presetScale[4];
     case 'heatLvl0': return baseScale[0];
@@ -72303,7 +72314,7 @@ if (typeof dismissNextPromptSuggestion === 'function') dismissNextPromptSuggesti
   }
 
   globalThis.__AGContextMeter = {
-    buildId: '44a35d8408f4f658',
+    buildId: '32c4f1cb7c6e0bc4',
     version: METER_RENDERER_VERSION,
     ensureAlive: () => {
       if (state.disposed) return false;

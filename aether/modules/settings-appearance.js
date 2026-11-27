@@ -248,6 +248,27 @@ function buildSettingsAppearanceSource() {
         prevBtn.addEventListener('click', () => showBootSplash(prefs.bootMode === 'off' ? 'orbital' : prefs.bootMode, true));
         group.appendChild(prevBtn);
       }
+      const list = sec.querySelector('.divide-y');
+      if (list) {
+        const nameRow = document.createElement('div');
+        nameRow.className = 'w-full';
+        nameRow.innerHTML =
+          '<div class="py-2 px-3 w-full bg-transparent flex justify-between gap-4 items-center">' +
+          '<div class="flex-1 flex flex-col gap-0.5"><span class="text-sm">Pilot ID</span>' +
+          '<span class="text-xs text-muted-foreground">Personal handle displayed on the particle boot screen.</span></div>' +
+          '<div class="shrink-0"><input id="aether-pilot-input" type="text" maxlength="24" placeholder="ATTENDRE" ' +
+          'class="h-8 w-36 rounded-lg border border-border bg-secondary/20 px-2.5 text-xs font-mono uppercase tracking-wider text-foreground outline-none focus:border-primary" /></div></div>';
+        const inp = nameRow.querySelector('#aether-pilot-input');
+        if (inp) {
+          inp.value = prefs.pilotName || 'ATTENDRE';
+          inp.addEventListener('input', () => {
+            const val = String(inp.value || '').trim().slice(0, 24) || 'ATTENDRE';
+            prefs.pilotName = val;
+            savePref(LS_PILOT_NAME, val);
+          });
+        }
+        list.appendChild(nameRow);
+      }
       return sec;
     }, FONT_ROW_ID);
     placeTopSection(appearance, UPGRADE_ROW_ID, () => {

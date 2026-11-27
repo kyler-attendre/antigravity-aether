@@ -20,6 +20,8 @@ function buildBootScreenSource() {
     if (prev) prev.remove();
 
     const isClassic = prefs.themeStyle === 'classic';
+    const pilotRaw = String((prefs && prefs.pilotName) || 'ATTENDRE').trim().slice(0, 24) || 'ATTENDRE';
+    const pilotEsc = pilotRaw.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])).toUpperCase();
     // Cinematic deep obsidian stage so glowing particles & trails pop with maximum contrast
     const bgTop = isClassic ? '#080B14' : '#0D0C0B';
     const bgBot = isClassic ? '#0D1322' : '#161412';
@@ -80,7 +82,7 @@ function buildBootScreenSource() {
     tr.textContent = 'PARTICLE ENGINE · v1.0';
     const bl = document.createElement('div');
     bl.style.cssText = hudCss + 'bottom:22px;left:26px;';
-    bl.innerHTML = \`<span>PILOT</span><span style="color:\${fg};font-weight:600;letter-spacing:0.2em;">ATTENDRE</span>\`;
+    bl.innerHTML = \`<span>PILOT</span><span style="color:\${fg};font-weight:600;letter-spacing:0.2em;">\${pilotEsc}</span>\`;
     const br = document.createElement('div');
     br.style.cssText = hudCss + 'bottom:22px;right:26px;';
     br.textContent = 'ESC / CLICK TO SKIP';
@@ -99,7 +101,7 @@ function buildBootScreenSource() {
       <div style="display:inline-flex;align-items:center;gap:8px;padding:4px 14px;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(\${accentRgb},0.32);backdrop-filter:blur(10px);animation:aetherSubFade 720ms 320ms cubic-bezier(0.22,1,0.36,1) both;">
         <span style="width:5px;height:5px;border-radius:99px;background:\${accentHex};box-shadow:0 0 8px \${accentHex};display:inline-block;"></span>
         <span style="font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:\${muted};">
-          WELCOME BACK · <strong style="color:\${fg};font-weight:600;">ATTENDRE</strong>
+          WELCOME BACK · <strong style="color:\${fg};font-weight:600;">\${pilotEsc}</strong>
         </span>
       </div>
       <div style="width:248px;display:flex;flex-direction:column;gap:7px;margin-top:6px;animation:aetherSubFade 720ms 420ms cubic-bezier(0.22,1,0.36,1) both;">
@@ -369,7 +371,7 @@ function buildBootScreenSource() {
       [0,  '01 · IGNITING PARTICLE FIELD'],
       [30, '02 · ASSEMBLING ANTIGRAVITY CORE'],
       [62, '03 · SYNCING AETHER TELEMETRY'],
-      [86, '04 · READY FOR ATTENDRE'],
+      [86, '04 · READY FOR ' + pilotEsc],
     ];
     const TOTAL_MS = effectiveMode === 'minimal' ? 1300 : (isPreview ? 2900 : 2250);
     const startTs = performance.now();

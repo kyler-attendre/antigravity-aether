@@ -95,6 +95,7 @@ function buildThemeEngineSource(baseThemeCss) {
   const LS_DREAM_MODE    = 'aether_dream_mode';    // 'off' | 'aurora' | 'void' | 'custom'
   const LS_DREAM_IMG     = 'aether_dream_image';   // data:image/jpeg;base64,...
   const LS_DREAM_SCRIM   = 'aether_dream_scrim';   // 'light' | 'balanced' | 'deep'
+  const LS_DREAM_FOCUS   = 'aether_dream_focus';   // 'left' | 'center' | 'right'
   const LS_PILOT_NAME    = 'aether_pilot_name';    // customizable boot screen pilot ID (default: ATTENDRE)
 
   function readPref(key, valid, fallback) {
@@ -120,6 +121,7 @@ function buildThemeEngineSource(baseThemeCss) {
     dreamMode: readPref(LS_DREAM_MODE, ['off', 'aurora', 'void', 'custom'], 'off'),
     dreamImage: readPref(LS_DREAM_IMG, null, ''),
     dreamScrim: readPref(LS_DREAM_SCRIM, ['light', 'balanced', 'deep'], 'balanced'),
+    dreamFocus: readPref(LS_DREAM_FOCUS, ['left', 'center', 'right'], 'center'),
     pilotName: readPref(LS_PILOT_NAME, null, 'ATTENDRE'),
   };
 
@@ -153,6 +155,8 @@ function buildThemeEngineSource(baseThemeCss) {
     }
 
     const isLight = document.body.classList.contains('theme-light');
+    const focusX = prefs.dreamFocus === 'left' ? '20%' : (prefs.dreamFocus === 'right' ? '80%' : '50%');
+    bgEl.style.backgroundPosition = focusX + ' center';
     if (prefs.dreamMode === 'custom' && prefs.dreamImage) {
       bgEl.style.backgroundImage = 'url("' + prefs.dreamImage.replace(/"/g, '') + '")';
     } else if (prefs.dreamMode === 'void') {

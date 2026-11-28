@@ -138,6 +138,16 @@ function buildSettingsAppearanceSource() {
               ['deep', 'Deep'],
             ],
           },
+          {
+            title: 'Focal Point',
+            prefKey: 'dreamFocus',
+            storageKey: LS_DREAM_FOCUS,
+            options: [
+              ['left', 'Left'],
+              ['center', 'Center'],
+              ['right', 'Right'],
+            ],
+          },
         ]
       );
       const firstGroup = sec.querySelector('[role=group]');
@@ -187,6 +197,29 @@ function buildSettingsAppearanceSource() {
         pickBtn.textContent = 'Choose Image…';
         pickBtn.addEventListener('click', () => fileInput.click());
         firstGroup.appendChild(pickBtn);
+
+        const clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.dataset.isAction = '1';
+        clearBtn.className = BTN;
+        clearBtn.textContent = 'Clear';
+        clearBtn.title = 'Remove saved custom wallpaper';
+        clearBtn.addEventListener('click', () => {
+          prefs.dreamImage = '';
+          savePref(LS_DREAM_IMG, null);
+          if (prefs.dreamMode === 'custom') {
+            prefs.dreamMode = 'off';
+            savePref(LS_DREAM_MODE, 'off');
+            for (const x of firstGroup.children) {
+              if (x.dataset.isAction) continue;
+              const isOff = x.textContent === 'Off';
+              x.setAttribute('aria-pressed', String(isOff));
+              x.toggleAttribute('data-pressed', isOff);
+            }
+          }
+          applyTheme();
+        });
+        firstGroup.appendChild(clearBtn);
       }
       return sec;
     }, STYLE_ROW_ID);

@@ -9168,6 +9168,7 @@
       }
       else if (e.key === '2') { e.preventDefault?.(); showPanel('context'); if (activeContextTab === 'accounts' || activeContextTab === 'settings') switchContextTab('session'); syncAetherHubActive('context'); }
       else if (e.key === '3') { e.preventDefault?.(); showPanel('tokens'); syncAetherHubActive('tokens'); }
+      else if (e.key === 'Escape') { e.preventDefault?.(); showPanel('none'); }
     });
   }
 

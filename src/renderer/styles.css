@@ -16507,6 +16507,38 @@
       background: #FFFFFF;
       color: #141413;
     }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .aether-hub-tab.is-active,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .aether-hub-tab.is-active {
+      background: #383834 !important;
+      color: #F4F3EE !important;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.32), inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+    }
+    /* 清零累积高峰胶囊的最后残留紫色 */
+    :host-context(html[data-ag-style="clay"]) .cum-peak-chip {
+      background: rgba(198, 97, 63, 0.09) !important;
+      border-color: rgba(198, 97, 63, 0.28) !important;
+      color: #9E4528 !important;
+    }
+    :host-context(html[data-ag-style="clay"]) .cum-peak-chip:hover,
+    :host-context(html[data-ag-style="clay"]) .cum-peak-chip.is-active {
+      background: rgba(198, 97, 63, 0.18) !important;
+      border-color: #C6613F !important;
+      color: #C6613F !important;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .cum-peak-chip,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .cum-peak-chip {
+      background: rgba(217, 119, 87, 0.14) !important;
+      border-color: rgba(217, 119, 87, 0.32) !important;
+      color: #E89A7E !important;
+    }
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .cum-peak-chip:hover,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .cum-peak-chip.is-active,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .cum-peak-chip:hover,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .cum-peak-chip.is-active {
+      background: rgba(217, 119, 87, 0.24) !important;
+      border-color: #D97757 !important;
+      color: #FFD6C7 !important;
+    }
     .aether-hub-actions {
       display: inline-flex;
       align-items: center;
@@ -16711,6 +16743,7 @@
     :host-context(html[data-ag-style="clay"]) .ag-bento-card,
     :host-context(html[data-ag-style="clay"]) .ctx-widget-card,
     :host-context(html[data-ag-style="clay"]) .ctx-bento-card,
+    :host-context(html[data-ag-style="clay"]) .quota-current-card,
     :host-context(html[data-ag-style="clay"]) .quota-subcard,
     :host-context(html[data-ag-style="clay"]) .quota-pool-card,
     :host-context(html[data-ag-style="clay"]) .quota-acct-card,
@@ -16725,6 +16758,7 @@
     :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .ag-bento-card,
     :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .ctx-widget-card,
     :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .ctx-bento-card,
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .quota-current-card,
     :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .quota-subcard,
     :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .quota-pool-card,
     :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .quota-acct-card,
@@ -16734,6 +16768,7 @@
     :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .ag-bento-card,
     :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .ctx-widget-card,
     :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .ctx-bento-card,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .quota-current-card,
     :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .quota-subcard,
     :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .quota-pool-card,
     :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .quota-acct-card,
@@ -16744,6 +16779,13 @@
       border-color: rgba(255, 255, 255, 0.09) !important;
       border-radius: 10px !important;
       box-shadow: none !important;
+    }
+    /* 深色模式主操作按钮（如 + 登录添加、编辑自动切号规则）高对比度修复 */
+    :host-context(html[data-ag-style="clay"]):host([data-theme="dark"]) .switch-pill-btn.active,
+    :host-context(html[data-ag-style="clay"]):host([data-panel-tone="dark"]) .switch-pill-btn.active {
+      background: rgba(217, 119, 87, 0.24) !important;
+      border-color: rgba(217, 119, 87, 0.48) !important;
+      color: #FFD6C7 !important;
     }
     /* 上下文页所有选中胶囊统一到 Clay 陶土色（替换全部残留蓝紫色） */
     :host-context(html[data-ag-style="clay"]) .ctx-preset-btn.active,
